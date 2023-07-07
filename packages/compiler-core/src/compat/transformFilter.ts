@@ -78,6 +78,7 @@ function parseFilter(node: SimpleExpressionNode, context: TransformContext) {
     prev = c
     c = exp.charCodeAt(i)
     if (inSingle) {
+      // 0x5c 转义字符
       if (c === 0x27 && prev !== 0x5c) inSingle = false
     } else if (inDouble) {
       if (c === 0x22 && prev !== 0x5c) inDouble = false
@@ -87,7 +88,7 @@ function parseFilter(node: SimpleExpressionNode, context: TransformContext) {
       if (c === 0x2f && prev !== 0x5c) inRegex = false
     } else if (
       c === 0x7c && // pipe
-      exp.charCodeAt(i + 1) !== 0x7c &&
+      exp.charCodeAt(i + 1) !== 0x7c && // 不为 | 操作符
       exp.charCodeAt(i - 1) !== 0x7c &&
       !curly &&
       !square &&
