@@ -32,30 +32,37 @@ import { createSSRCompilerError, SSRErrorCodes } from './errors'
 // instead of each getting a corresponding call), we need to apply an extra
 // transform pass to convert the template AST into a fresh JS AST before
 // passing it to codegen.
-
+// ssr编码转换
 export function ssrCodegenTransform(ast: RootNode, options: CompilerOptions) {
+  // 创建ssr转换上下文对象
   const context = createSSRTransformContext(ast, options)
 
   // inject SFC <style> CSS variables
   // we do this instead of inlining the expression to ensure the vars are
   // only resolved once per render
+  // 选项中ssrCSS声名为真
   if (options.ssrCssVars) {
+    // 创建上下文转换对象CSS
     const cssContext = createTransformContext(createRoot([]), options)
+    // 进程表达式，返回声名表达式 
     const varsExp = processExpression(
       createSimpleExpression(options.ssrCssVars, false),
       cssContext
     )
+    // 上下文对象中压入创建的表达式
     context.body.push(
       createCompoundExpression([`const _cssVars = { style: `, varsExp, `}`])
     )
+    // Array格式化数组
     Array.from(cssContext.helpers.keys()).forEach(helper => {
       ast.helpers.add(helper)
     })
   }
-
+  // 判断是代片段 
   const isFragment =
     ast.children.length > 1 && ast.children.some(c => !isText(c))
   processChildren(ast, context, isFragment)
+  // AST编码节点指向创建的代码块
   ast.codegenNode = createBlockStatement(context.body)
 
   // Finalize helpers.
@@ -71,7 +78,7 @@ export function ssrCodegenTransform(ast: RootNode, options: CompilerOptions) {
 }
 
 export type SSRTransformContext = ReturnType<typeof createSSRTransformContext>
-
+// 创建SSR转换上下文对象
 function createSSRTransformContext(
   root: RootNode,
   options: CompilerOptions,
@@ -80,7 +87,7 @@ function createSSRTransformContext(
 ) {
   const body: BlockStatement['body'] = []
   let currentString: TemplateLiteral | null = null
-
+  // 返回上下文对象
   return {
     root,
     options,
@@ -118,7 +125,7 @@ function createSSRTransformContext(
     }
   }
 }
-
+// 创建子元素上下文对象
 function createChildContext(
   parent: SSRTransformContext,
   withSlotScopeId = parent.withSlotScopeId
@@ -135,7 +142,7 @@ function createChildContext(
 interface Container {
   children: TemplateChildNode[]
 }
-
+// 转换子元素
 export function processChildren(
   parent: Container,
   context: SSRTransformContext,
@@ -218,7 +225,7 @@ export function processChildren(
     context.pushStringPart(`<!--]-->`)
   }
 }
-
+// 转换子元素语句
 export function processChildrenAsStatement(
   parent: Container,
   parentContext: SSRTransformContext,

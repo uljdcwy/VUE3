@@ -26,7 +26,7 @@ import { ssrTransformModel } from './transforms/ssrVModel'
 import { ssrTransformShow } from './transforms/ssrVShow'
 import { ssrInjectFallthroughAttrs } from './transforms/ssrInjectFallthroughAttrs'
 import { ssrInjectCssVars } from './transforms/ssrInjectCssVars'
-
+// 转换编码
 export function compile(
   template: string,
   options: CompilerOptions = {}

@@ -44,4 +44,5 @@ export const ssrHelpers = {
 
 // Note: these are helpers imported from @vue/server-renderer
 // make sure the names match!
+// 注册运行辅助方法
 registerRuntimeHelpers(ssrHelpers)

@@ -21,6 +21,7 @@ export const ssrTransformFor = createStructuralDirectiveTransform(
 
 // This is called during the 2nd transform pass to construct the SSR-specific
 // codegen nodes.
+// 编译FOR循环的内容
 export function ssrProcessFor(
   node: ForNode,
   context: SSRTransformContext,
