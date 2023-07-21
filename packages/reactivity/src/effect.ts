@@ -31,11 +31,11 @@ export let trackOpBit = 1
 const maxMarkerBits = 30
 
 export type EffectScheduler = (...args: any[]) => any
-
+// 定义类型
 export type DebuggerEvent = {
   effect: ReactiveEffect
 } & DebuggerEventExtraInfo
-
+//定认别名类型
 export type DebuggerEventExtraInfo = {
   target: object
   type: TrackOpTypes | TriggerOpTypes
@@ -46,11 +46,13 @@ export type DebuggerEventExtraInfo = {
 }
 
 export let activeEffect: ReactiveEffect | undefined
-
+// 特定地址
 export const ITERATE_KEY = Symbol(__DEV__ ? 'iterate' : '')
+// 特定地址
 export const MAP_KEY_ITERATE_KEY = Symbol(__DEV__ ? 'Map key iterate' : '')
-
+// 相对副作用类
 export class ReactiveEffect<T = any> {
+  // 公开属性
   active = true
   deps: Dep[] = []
   parent: ReactiveEffect | undefined = undefined
@@ -59,6 +61,7 @@ export class ReactiveEffect<T = any> {
    * Can be attached after creation
    * @internal
    */
+  // 公开方法
   computed?: ComputedRefImpl<T>
   /**
    * @internal
@@ -68,27 +71,32 @@ export class ReactiveEffect<T = any> {
    * @internal
    */
   private deferStop?: boolean
-
+  // 停止事件
   onStop?: () => void
   // dev only
+  // 任务收集事件
   onTrack?: (event: DebuggerEvent) => void
   // dev only
+  // 设置触发事件
   onTrigger?: (event: DebuggerEvent) => void
-
+  // new 原型
   constructor(
     public fn: () => T,
     public scheduler: EffectScheduler | null = null,
     scope?: EffectScope
   ) {
+    // 记录副作用作用域
     recordEffectScope(this, scope)
   }
-
+  // 运行
   run() {
+    // 如果是非激活状态运行fn
     if (!this.active) {
       return this.fn()
     }
     let parent: ReactiveEffect | undefined = activeEffect
     let lastShouldTrack = shouldTrack
+    // 如果有副作用函数
     while (parent) {
       if (parent === this) {
         return
@@ -103,12 +111,16 @@ export class ReactiveEffect<T = any> {
       trackOpBit = 1 << ++effectTrackDepth
 
       if (effectTrackDepth <= maxMarkerBits) {
+        // 初始化副作用函数
         initDepMarkers(this)
       } else {
+        // 清除副作用函数
         cleanupEffect(this)
       }
+      // 调用fn函数
       return this.fn()
     } finally {
+      // 如果收信的依赖数大最最大依赖数 完成依赖标记
       if (effectTrackDepth <= maxMarkerBits) {
         finalizeDepMarkers(this)
       }
@@ -124,7 +136,7 @@ export class ReactiveEffect<T = any> {
       }
     }
   }
-
+  // 停止
   stop() {
     // stopped while running itself - defer the cleanup
     if (activeEffect === this) {
@@ -138,7 +150,7 @@ export class ReactiveEffect<T = any> {
     }
   }
 }
-
+// 清除副作用函数收集将副作用函数清除
 function cleanupEffect(effect: ReactiveEffect) {
   const { deps } = effect
   if (deps.length) {
@@ -177,23 +189,30 @@ export interface ReactiveEffectRunner<T = any> {
  * @param options - Allows to control the effect's behaviour.
  * @returns A runner that can be used to control the effect after creation.
  */
+// 监听函数类型
 export function effect<T = any>(
   fn: () => T,
   options?: ReactiveEffectOptions
 ): ReactiveEffectRunner {
+  // 获取 fn 指向
   if ((fn as ReactiveEffectRunner).effect) {
     fn = (fn as ReactiveEffectRunner).effect.fn
   }
-
+  // 相对副作用函数执行传入Fn 
   const _effect = new ReactiveEffect(fn)
+  // 如果选择为真扩展选项
   if (options) {
     extend(_effect, options)
+    // 记录副作用函数作用域
     if (options.scope) recordEffectScope(_effect, options.scope)
   }
+  // 如果选项不为真，或者选项懒加载为假副作用函数执行
   if (!options || !options.lazy) {
     _effect.run()
   }
+  // 获取返行状诚
   const runner = _effect.run.bind(_effect) as ReactiveEffectRunner
+  // 运行状态的副作用函数指向副作用函数
   runner.effect = _effect
   return runner
 }
@@ -203,6 +222,7 @@ export function effect<T = any>(
  *
  * @param runner - Association with the effect to stop tracking.
  */
+// 暂停副作用函数收集
 export function stop(runner: ReactiveEffectRunner) {
   runner.effect.stop()
 }
@@ -213,6 +233,7 @@ const trackStack: boolean[] = []
 /**
  * Temporarily pauses tracking.
  */
+// 暂停任务收集
 export function pauseTracking() {
   trackStack.push(shouldTrack)
   shouldTrack = false
@@ -221,6 +242,7 @@ export function pauseTracking() {
 /**
  * Re-enables effect tracking (if it was paused).
  */
+// 启用任务收集
 export function enableTracking() {
   trackStack.push(shouldTrack)
   shouldTrack = true
@@ -229,6 +251,7 @@ export function enableTracking() {
 /**
  * Resets the previous global effect tracking state.
  */
+// 重启任务收集
 export function resetTracking() {
   const last = trackStack.pop()
   shouldTrack = last === undefined ? true : last
@@ -244,6 +267,7 @@ export function resetTracking() {
  * @param type - Defines the type of access to the reactive property.
  * @param key - Identifier of the reactive property to track.
  */
+// 收集副作用函数
 export function track(target: object, type: TrackOpTypes, key: unknown) {
   if (shouldTrack && activeEffect) {
     let depsMap = targetMap.get(target)
@@ -262,7 +286,7 @@ export function track(target: object, type: TrackOpTypes, key: unknown) {
     trackEffects(dep, eventInfo)
   }
 }
-
+// 在集赖中收集副作用函数
 export function trackEffects(
   dep: Dep,
   debuggerEventExtraInfo?: DebuggerEventExtraInfo
@@ -302,6 +326,7 @@ export function trackEffects(
  * @param type - Defines the type of the operation that needs to trigger effects.
  * @param key - Can be used to target a specific reactive property in the target object.
  */
+// 触发副作用函数
 export function trigger(
   target: object,
   type: TriggerOpTypes,
@@ -389,7 +414,7 @@ export function trigger(
     }
   }
 }
-
+// 触发依赖组的副作用函数
 export function triggerEffects(
   dep: Dep | ReactiveEffect[],
   debuggerEventExtraInfo?: DebuggerEventExtraInfo
@@ -407,12 +432,14 @@ export function triggerEffects(
     }
   }
 }
-
+// 触发依赖的副作用函数
 function triggerEffect(
   effect: ReactiveEffect,
   debuggerEventExtraInfo?: DebuggerEventExtraInfo
 ) {
+  // 如果当前副作用函数不为正在收集的副作用函数  或者  allowRecurse为真
   if (effect !== activeEffect || effect.allowRecurse) {
+    // 如果是开发环境境与副作用函数ontrigger为真
     if (__DEV__ && effect.onTrigger) {
       effect.onTrigger(extend({ effect }, debuggerEventExtraInfo))
     }
@@ -423,7 +450,7 @@ function triggerEffect(
     }
   }
 }
-
+// 获取依赖表的reactive
 export function getDepFromReactive(object: any, key: string | number | symbol) {
   return targetMap.get(object)?.get(key)
 }

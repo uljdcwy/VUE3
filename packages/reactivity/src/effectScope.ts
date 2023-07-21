@@ -2,7 +2,7 @@ import { ReactiveEffect } from './effect'
 import { warn } from './warning'
 
 let activeEffectScope: EffectScope | undefined
-
+// 副作用作用域类
 export class EffectScope {
   /**
    * @internal
@@ -35,6 +35,7 @@ export class EffectScope {
   private index: number | undefined
 
   constructor(public detached = false) {
+    // 获取活动的副作用作用域类
     this.parent = activeEffectScope
     if (!detached && activeEffectScope) {
       this.index =
@@ -43,12 +44,13 @@ export class EffectScope {
         ) - 1
     }
   }
-
+  // 获取当前活动的副作用函数
   get active() {
     return this._active
   }
 
   run<T>(fn: () => T): T | undefined {
+    // 运行传入的函数
     if (this._active) {
       const currentEffectScope = activeEffectScope
       try {
@@ -66,6 +68,7 @@ export class EffectScope {
    * This should only be called on non-detached scopes
    * @internal
    */
+  // 关闭 
   on() {
     activeEffectScope = this
   }
@@ -74,10 +77,11 @@ export class EffectScope {
    * This should only be called on non-detached scopes
    * @internal
    */
+  // 启用
   off() {
     activeEffectScope = this.parent
   }
-
+  // 停止
   stop(fromParent?: boolean) {
     if (this._active) {
       let i, l
@@ -116,10 +120,11 @@ export class EffectScope {
  * @param detached - Can be used to create a "detached" effect scope.
  * @see {@link https://vuejs.org/api/reactivity-advanced.html#effectscope}
  */
+// 副作用作用域
 export function effectScope(detached?: boolean) {
   return new EffectScope(detached)
 }
-
+// 记录副作用作用域
 export function recordEffectScope(
   effect: ReactiveEffect,
   scope: EffectScope | undefined = activeEffectScope
@@ -134,6 +139,7 @@ export function recordEffectScope(
  *
  * @see {@link https://vuejs.org/api/reactivity-advanced.html#getcurrentscope}
  */
+// 获取当前副作用作用域
 export function getCurrentScope() {
   return activeEffectScope
 }
@@ -145,6 +151,7 @@ export function getCurrentScope() {
  * @param fn - The callback function to attach to the scope's cleanup.
  * @see {@link https://vuejs.org/api/reactivity-advanced.html#onscopedispose}
  */
+// 副作用作用域暴露
 export function onScopeDispose(fn: () => void) {
   if (activeEffectScope) {
     activeEffectScope.cleanups.push(fn)

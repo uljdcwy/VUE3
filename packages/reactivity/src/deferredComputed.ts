@@ -7,7 +7,7 @@ import { trackRefValue, triggerRefValue } from './ref'
 const tick = /*#__PURE__*/ Promise.resolve()
 const queue: any[] = []
 let queued = false
-
+// 调度器
 const scheduler = (fn: any) => {
   queue.push(fn)
   if (!queued) {
@@ -15,7 +15,7 @@ const scheduler = (fn: any) => {
     tick.then(flush)
   }
 }
-
+// 执行调度器压入的方法
 const flush = () => {
   for (let i = 0; i < queue.length; i++) {
     queue[i]()
@@ -23,7 +23,7 @@ const flush = () => {
   queue.length = 0
   queued = false
 }
-
+// 计算方法 传入调度器
 class DeferredComputedRefImpl<T> {
   public dep?: Dep = undefined
 
@@ -33,11 +33,12 @@ class DeferredComputedRefImpl<T> {
 
   public readonly __v_isRef = true
   public readonly [ReactiveFlags.IS_READONLY] = true
-
+  // new 方法传入getter
   constructor(getter: ComputedGetter<T>) {
     let compareTarget: any
     let hasCompareTarget = false
     let scheduled = false
+    // 创建副作用reactive 收信方法
     this.effect = new ReactiveEffect(getter, (computedTrigger?: boolean) => {
       if (this.dep) {
         if (computedTrigger) {
@@ -67,7 +68,7 @@ class DeferredComputedRefImpl<T> {
     })
     this.effect.computed = this as any
   }
-
+  // 私有的GET方法
   private _get() {
     if (this._dirty) {
       this._dirty = false
@@ -75,14 +76,14 @@ class DeferredComputedRefImpl<T> {
     }
     return this._value
   }
-
+  // 收集依赖 并反回属性
   get value() {
     trackRefValue(this)
     // the computed ref may get wrapped by other proxies e.g. readonly() #3376
     return toRaw(this)._get()
   }
 }
-
+// 返回创建的方法
 export function deferredComputed<T>(getter: () => T): ComputedRef<T> {
   return new DeferredComputedRefImpl(getter) as any
 }

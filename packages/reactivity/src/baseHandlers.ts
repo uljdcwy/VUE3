@@ -31,9 +31,9 @@ import {
 } from '@vue/shared'
 import { isRef } from './ref'
 import { warn } from './warning'
-
+// 是不需要收集副作用函数的KEY
 const isNonTrackableKeys = /*#__PURE__*/ makeMap(`__proto__,__v_isRef,__isVue`)
-
+// 创建一个Symbol副本
 const builtInSymbols = new Set(
   /*#__PURE__*/
   Object.getOwnPropertyNames(Symbol)
@@ -44,14 +44,17 @@ const builtInSymbols = new Set(
     .map(key => (Symbol as any)[key])
     .filter(isSymbol)
 )
-
-const get = /*#__PURE__*/ createGetter()
+// 获取 获取副作用收集函数
+const get = /*#__PURE__*/ createGetter();
+// 获取 获取副作用收集函数
 const shallowGet = /*#__PURE__*/ createGetter(false, true)
+// 获取 获取副作用收集函数
 const readonlyGet = /*#__PURE__*/ createGetter(true)
+// 获取 获取副作用收集函数
 const shallowReadonlyGet = /*#__PURE__*/ createGetter(true, true)
-
+// 创建提定方法的阵列
 const arrayInstrumentations = /*#__PURE__*/ createArrayInstrumentations()
-
+// 创建提定方法的阵列
 function createArrayInstrumentations() {
   const instrumentations: Record<string, Function> = {}
   // instrument identity-sensitive Array methods to account for possible reactive
@@ -84,13 +87,13 @@ function createArrayInstrumentations() {
   })
   return instrumentations
 }
-
+// 有私有属性进行收集方法
 function hasOwnProperty(this: object, key: string) {
   const obj = toRaw(this)
   track(obj, TrackOpTypes.HAS, key)
   return obj.hasOwnProperty(key)
 }
-
+// 创建收集副作用函数
 function createGetter(isReadonly = false, shallow = false) {
   return function get(target: Target, key: string | symbol, receiver: object) {
     if (key === ReactiveFlags.IS_REACTIVE) {
@@ -154,10 +157,11 @@ function createGetter(isReadonly = false, shallow = false) {
     return res
   }
 }
-
+// 创建触发副作用函数的方法
 const set = /*#__PURE__*/ createSetter()
+// 创建触发副作用函数的方法
 const shallowSet = /*#__PURE__*/ createSetter(true)
-
+// 创建触发副作用函数
 function createSetter(shallow = false) {
   return function set(
     target: object,
@@ -198,7 +202,7 @@ function createSetter(shallow = false) {
     return result
   }
 }
-
+// 删除属性时触发副作用函数方法
 function deleteProperty(target: object, key: string | symbol): boolean {
   const hadKey = hasOwn(target, key)
   const oldValue = (target as any)[key]
@@ -208,7 +212,7 @@ function deleteProperty(target: object, key: string | symbol): boolean {
   }
   return result
 }
-
+// has运行时收集副作用函数
 function has(target: object, key: string | symbol): boolean {
   const result = Reflect.has(target, key)
   if (!isSymbol(key) || !builtInSymbols.has(key)) {
@@ -229,7 +233,7 @@ export const mutableHandlers: ProxyHandler<object> = {
   has,
   ownKeys
 }
-
+// 给出用户提示
 export const readonlyHandlers: ProxyHandler<object> = {
   get: readonlyGet,
   set(target, key) {
@@ -252,6 +256,7 @@ export const readonlyHandlers: ProxyHandler<object> = {
   }
 }
 
+// 扩展方法
 export const shallowReactiveHandlers = /*#__PURE__*/ extend(
   {},
   mutableHandlers,
@@ -264,6 +269,7 @@ export const shallowReactiveHandlers = /*#__PURE__*/ extend(
 // Props handlers are special in the sense that it should not unwrap top-level
 // refs (in order to allow refs to be explicitly passed down), but should
 // retain the reactivity of the normal readonly object.
+// 扩展方法
 export const shallowReadonlyHandlers = /*#__PURE__*/ extend(
   {},
   readonlyHandlers,

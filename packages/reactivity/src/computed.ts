@@ -22,11 +22,13 @@ export interface WritableComputedOptions<T> {
   get: ComputedGetter<T>
   set: ComputedSetter<T>
 }
-
+// 导出类计算REF属性
 export class ComputedRefImpl<T> {
+  // 公有属性 dep
   public dep?: Dep = undefined
-
+  // 私有属性_value
   private _value!: T
+  // 公有只读属性 effect
   public readonly effect: ReactiveEffect<T>
 
   public readonly __v_isRef = true
@@ -44,6 +46,7 @@ export class ComputedRefImpl<T> {
     this.effect = new ReactiveEffect(getter, () => {
       if (!this._dirty) {
         this._dirty = true
+        // 初始化时触发一次设置方法
         triggerRefValue(this)
       }
     })
@@ -51,7 +54,7 @@ export class ComputedRefImpl<T> {
     this.effect.active = this._cacheable = !isSSR
     this[ReactiveFlags.IS_READONLY] = isReadonly
   }
-
+  // 触发获取值方法
   get value() {
     // the computed ref may get wrapped by other proxies e.g. readonly() #3376
     const self = toRaw(this)
@@ -62,7 +65,7 @@ export class ComputedRefImpl<T> {
     }
     return self._value
   }
-
+  // 触发设置触方法
   set value(newValue: T) {
     this._setter(newValue)
   }
@@ -109,6 +112,7 @@ export function computed<T>(
   options: WritableComputedOptions<T>,
   debugOptions?: DebuggerOptions
 ): WritableComputedRef<T>
+// 计算属性
 export function computed<T>(
   getterOrOptions: ComputedGetter<T> | WritableComputedOptions<T>,
   debugOptions?: DebuggerOptions,
@@ -116,8 +120,8 @@ export function computed<T>(
 ) {
   let getter: ComputedGetter<T>
   let setter: ComputedSetter<T>
-
   const onlyGetter = isFunction(getterOrOptions)
+  // 如果计算属性是函数时
   if (onlyGetter) {
     getter = getterOrOptions
     setter = __DEV__
@@ -129,13 +133,13 @@ export function computed<T>(
     getter = getterOrOptions.get
     setter = getterOrOptions.set
   }
-
+  // 新建计算的Ref对象
   const cRef = new ComputedRefImpl(getter, setter, onlyGetter || !setter, isSSR)
-
+  // 如果是开发环境，与DEBUGGER为真与不是SSR 转换指向
   if (__DEV__ && debugOptions && !isSSR) {
     cRef.effect.onTrack = debugOptions.onTrack
     cRef.effect.onTrigger = debugOptions.onTrigger
   }
-
+  // 返回内容
   return cRef as any
 }

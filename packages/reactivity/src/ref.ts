@@ -36,7 +36,7 @@ type RefBase<T> = {
   dep?: Dep
   value: T
 }
-
+// 收集Ref值的依赖
 export function trackRefValue(ref: RefBase<any>) {
   if (shouldTrack && activeEffect) {
     ref = toRaw(ref)
@@ -51,7 +51,7 @@ export function trackRefValue(ref: RefBase<any>) {
     }
   }
 }
-
+// 触发Ref值的晌应
 export function triggerRefValue(ref: RefBase<any>, newVal?: any) {
   ref = toRaw(ref)
   const dep = ref.dep
@@ -120,17 +120,18 @@ export function shallowRef<T extends object>(
 ): T extends Ref ? T : ShallowRef<T>
 export function shallowRef<T>(value: T): ShallowRef<T>
 export function shallowRef<T = any>(): ShallowRef<T | undefined>
+// 浅Ref 返回创建的ref
 export function shallowRef(value?: unknown) {
   return createRef(value, true)
 }
-
+// 创建Ref如果是ref返回Ref
 function createRef(rawValue: unknown, shallow: boolean) {
   if (isRef(rawValue)) {
     return rawValue
   }
   return new RefImpl(rawValue, shallow)
 }
-
+// Ref类
 class RefImpl<T> {
   private _value: T
   private _rawValue: T
@@ -142,12 +143,13 @@ class RefImpl<T> {
     this._rawValue = __v_isShallow ? value : toRaw(value)
     this._value = __v_isShallow ? value : toReactive(value)
   }
-
+  
+  // 收集依赖
   get value() {
     trackRefValue(this)
     return this._value
   }
-
+  // 触发依赖
   set value(newVal) {
     const useDirectValue =
       this.__v_isShallow || isShallow(newVal) || isReadonly(newVal)
@@ -185,6 +187,7 @@ class RefImpl<T> {
  * @param ref - The ref whose tied effects shall be executed.
  * @see {@link https://vuejs.org/api/reactivity-advanced.html#triggerref}
  */
+// 触发依赖
 export function triggerRef(ref: Ref) {
   triggerRefValue(ref, __DEV__ ? ref.value : void 0)
 }
@@ -208,6 +211,7 @@ export type MaybeRefOrGetter<T = any> = MaybeRef<T> | (() => T)
  * @param ref - Ref or plain value to be converted into the plain value.
  * @see {@link https://vuejs.org/api/reactivity-utilities.html#unref}
  */
+// 解开Ref
 export function unref<T>(ref: MaybeRef<T>): T {
   return isRef(ref) ? ref.value : ref
 }
@@ -228,10 +232,11 @@ export function unref<T>(ref: MaybeRef<T>): T {
  * @param source - A getter, an existing ref, or a non-function value.
  * @see {@link https://vuejs.org/api/reactivity-utilities.html#tovalue}
  */
+// 转值
 export function toValue<T>(source: MaybeRefOrGetter<T>): T {
   return isFunction(source) ? source() : unref(source)
 }
-
+// 浅层展示处理程序
 const shallowUnwrapHandlers: ProxyHandler<any> = {
   get: (target, key, receiver) => unref(Reflect.get(target, key, receiver)),
   set: (target, key, value, receiver) => {
@@ -255,6 +260,7 @@ const shallowUnwrapHandlers: ProxyHandler<any> = {
  * @param objectWithRefs - Either an already-reactive object or a simple object
  * that contains refs.
  */
+// 代理REF
 export function proxyRefs<T extends object>(
   objectWithRefs: T
 ): ShallowUnwrapRef<T> {
@@ -270,7 +276,7 @@ export type CustomRefFactory<T> = (
   get: () => T
   set: (value: T) => void
 }
-
+// 自塞上义REF象
 class CustomRefImpl<T> {
   public dep?: Dep = undefined
 
@@ -320,6 +326,7 @@ export type ToRefs<T = any> = {
  * @param object - Reactive object to be made into an object of linked refs.
  * @see {@link https://vuejs.org/api/reactivity-utilities.html#torefs}
  */
+// 
 export function toRefs<T extends object>(object: T): ToRefs<T> {
   if (__DEV__ && !isProxy(object)) {
     console.warn(`toRefs() expects a reactive object but received a plain one.`)
@@ -331,6 +338,7 @@ export function toRefs<T extends object>(object: T): ToRefs<T> {
   return ret
 }
 
+// 对象的REF
 class ObjectRefImpl<T extends object, K extends keyof T> {
   public readonly __v_isRef = true
 
@@ -353,7 +361,7 @@ class ObjectRefImpl<T extends object, K extends keyof T> {
     return getDepFromReactive(toRaw(this._object), this._key)
   }
 }
-
+// ref函数类
 class GetterRefImpl<T> {
   public readonly __v_isRef = true
   public readonly __v_isReadonly = true
@@ -424,6 +432,7 @@ export function toRef<T extends object, K extends keyof T>(
   key: K,
   defaultValue: T[K]
 ): ToRef<Exclude<T[K], undefined>>
+// 转换成REF
 export function toRef(
   source: Record<string, any> | MaybeRef,
   key?: string,
@@ -439,7 +448,7 @@ export function toRef(
     return ref(source)
   }
 }
-
+// 获取REF原属笥
 function propertyToRef(
   source: Record<string, any>,
   key: string,

@@ -60,7 +60,7 @@ export const transformBind: DirectiveTransform = (dir, _node, context) => {
     props: [createObjectProperty(arg, exp)]
   }
 }
-
+// 注入前缀
 const injectPrefix = (arg: ExpressionNode, prefix: string) => {
   if (arg.type === NodeTypes.SIMPLE_EXPRESSION) {
     if (arg.isStatic) {
