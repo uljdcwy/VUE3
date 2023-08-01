@@ -10,7 +10,7 @@ export interface LegacyDirective {
   componentUpdated?: DirectiveHook
   unbind?: DirectiveHook
 }
-
+// 定义类型
 const legacyDirectiveHookMap: Partial<
   Record<
     keyof ObjectDirective,
@@ -22,25 +22,33 @@ const legacyDirectiveHookMap: Partial<
   updated: ['update', 'componentUpdated'],
   unmounted: 'unbind'
 }
-
+// 图兼容指令勾子
 export function mapCompatDirectiveHook(
   name: keyof ObjectDirective,
   dir: ObjectDirective & LegacyDirective,
   instance: ComponentInternalInstance | null
 ): DirectiveHook | DirectiveHook[] | undefined {
+  // 获取图名称
   const mappedName = legacyDirectiveHookMap[name]
+  // 如果图名称为真
   if (mappedName) {
+    // 如果是数组
     if (isArray(mappedName)) {
+      // 
       const hook: DirectiveHook[] = []
+      // 循环图名称
       mappedName.forEach(mapped => {
+        // 获取指令勾子
         const mappedHook = dir[mapped]
-        if (mappedHook) {
+        // 如果指令勾子为真
+        if (mappedHook) {// 
           softAssertCompatEnabled(
             DeprecationTypes.CUSTOM_DIR,
             instance,
             mapped,
             name
           )
+          // 构了压入 指令勾子
           hook.push(mappedHook)
         }
       })
@@ -54,6 +62,7 @@ export function mapCompatDirectiveHook(
           name
         )
       }
+      // 返回指令勾子
       return dir[mappedName]
     }
   }

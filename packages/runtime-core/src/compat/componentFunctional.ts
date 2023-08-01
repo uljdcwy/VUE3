@@ -12,14 +12,14 @@ const normalizedFunctionalComponentMap = new Map<
   ComponentOptions,
   FunctionalComponent
 >()
-
+// 代理获取方法
 export const legacySlotProxyHandlers: ProxyHandler<InternalSlots> = {
   get(target, key: string) {
     const slot = target[key]
     return slot && slot()
   }
 }
-
+// 转换遗留的异步功能组件
 export function convertLegacyFunctionalComponent(comp: ComponentOptions) {
   if (normalizedFunctionalComponentMap.has(comp)) {
     return normalizedFunctionalComponentMap.get(comp)!
@@ -28,6 +28,7 @@ export function convertLegacyFunctionalComponent(comp: ComponentOptions) {
   const legacyFn = comp.render as any
 
   const Func: FunctionalComponent = (props, ctx) => {
+    // 获取当前上下文对象
     const instance = getCurrentInstance()!
 
     const legacyCtx = {
@@ -51,6 +52,7 @@ export function convertLegacyFunctionalComponent(comp: ComponentOptions) {
         return {}
       }
     }
+    // 返回旧版的函数执行返回值
     return legacyFn(compatH, legacyCtx)
   }
   Func.props = comp.props
@@ -58,7 +60,7 @@ export function convertLegacyFunctionalComponent(comp: ComponentOptions) {
   Func.compatConfig = comp.compatConfig
   // v2 functional components do not inherit attrs
   Func.inheritAttrs = false
-
+  // 在缓存中存下组件组及函数 Func
   normalizedFunctionalComponentMap.set(comp, Func)
   return Func
 }

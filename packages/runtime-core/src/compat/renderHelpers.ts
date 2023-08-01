@@ -13,7 +13,7 @@ import { createSlots } from '../helpers/createSlots'
 import { renderSlot } from '../helpers/renderSlot'
 import { toHandlers } from '../helpers/toHandlers'
 import { mergeProps, VNode } from '../vnode'
-
+// 数组转对象
 function toObject(arr: Array<any>): Object {
   const res = {}
   for (let i = 0; i < arr.length; i++) {
@@ -23,7 +23,7 @@ function toObject(arr: Array<any>): Object {
   }
   return res
 }
-
+// 旧版绑定对角属笥
 export function legacyBindObjectProps(
   data: any,
   _tag: string,
@@ -59,13 +59,14 @@ export function legacyBindObjectProps(
       }
     }
   }
+  // 返回data
   return data
 }
-
+// 旧版绑定对象监听
 export function legacyBindObjectListeners(props: any, listeners: any) {
   return mergeProps(props, toHandlers(listeners))
 }
-
+  // 旧版渲染Slot
 export function legacyRenderSlot(
   instance: ComponentInternalInstance,
   name: string,
@@ -73,9 +74,12 @@ export function legacyRenderSlot(
   props?: any,
   bindObject?: any
 ) {
+  // 如果绑定对象为真
   if (bindObject) {
+    // 属性指向合并属隆
     props = mergeProps(props, bindObject)
   }
+  // 返回渲染的slot
   return renderSlot(instance.slots, name, props, fallback && (() => fallback))
 }
 
@@ -86,7 +90,7 @@ type LegacyScopedSlotsData = Array<
     }
   | LegacyScopedSlotsData
 >
-
+// 转换作用域slots
 export function legacyresolveScopedSlots(
   fns: LegacyScopedSlotsData,
   raw?: Record<string, Slot>,
@@ -94,12 +98,13 @@ export function legacyresolveScopedSlots(
   hasDynamicKeys?: boolean
 ) {
   // v2 default slot doesn't have name
+  // 返回创建的slots
   return createSlots(
     raw || ({ $stable: !hasDynamicKeys } as any),
     mapKeyToName(fns)
   )
 }
-
+// 对slot名称转换
 function mapKeyToName(slots: LegacyScopedSlotsData) {
   for (let i = 0; i < slots.length; i++) {
     const fn = slots[i]
@@ -118,7 +123,7 @@ const staticCacheMap = /*#__PURE__*/ new WeakMap<
   ComponentInternalInstance,
   any[]
 >()
-
+// 旧版渲染静态
 export function legacyRenderStatic(
   instance: ComponentInternalInstance,
   index: number
@@ -132,9 +137,10 @@ export function legacyRenderStatic(
   }
   const fn = (instance.type as any).staticRenderFns[index]
   const ctx = instance.proxy
+  // 返回缓存中的方法并记录缓存
   return (cache[index] = fn.call(ctx, null, ctx))
 }
-
+// 旧版检查键码
 export function legacyCheckKeyCodes(
   instance: ComponentInternalInstance,
   eventKeyCode: number,
@@ -147,14 +153,17 @@ export function legacyCheckKeyCodes(
   const configKeyCodes = config.keyCodes || {}
   const mappedKeyCode = configKeyCodes[key] || builtInKeyCode
   if (builtInKeyName && eventKeyName && !configKeyCodes[key]) {
+    // 返回KEY不配置返回值
     return isKeyNotMatch(builtInKeyName, eventKeyName)
   } else if (mappedKeyCode) {
+    // 返
     return isKeyNotMatch(mappedKeyCode, eventKeyCode)
   } else if (eventKeyName) {
+    // 返回连字符
     return hyphenate(eventKeyName) !== key
   }
 }
-
+// 是键不匹配方法
 function isKeyNotMatch<T>(expect: T | T[], actual: T): boolean {
   if (isArray(expect)) {
     return !expect.includes(actual)
@@ -162,11 +171,11 @@ function isKeyNotMatch<T>(expect: T | T[], actual: T): boolean {
     return expect !== actual
   }
 }
-
+// 兼容标记once
 export function legacyMarkOnce(tree: VNode) {
   return tree
 }
-
+// 旧版绑定活动的键
 export function legacyBindDynamicKeys(props: any, values: any[]) {
   for (let i = 0; i < values.length; i += 2) {
     const key = values[i]
@@ -174,9 +183,11 @@ export function legacyBindDynamicKeys(props: any, values: any[]) {
       props[values[i]] = values[i + 1]
     }
   }
+  // 返回属性
   return props
 }
 
+// 旧版前缀
 export function legacyPrependModifier(value: any, symbol: string) {
   return typeof value === 'string' ? symbol + value : value
 }

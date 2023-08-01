@@ -1,6 +1,6 @@
 import { isPlainObject } from '@vue/shared'
 import { DeprecationTypes, warnDeprecation } from './compatConfig'
-
+// 深度合并数据
 export function deepMergeData(to: any, from: any) {
   for (const key in from) {
     const toVal = to[key]

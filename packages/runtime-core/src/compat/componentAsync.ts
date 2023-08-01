@@ -19,7 +19,7 @@ type LegacyAsyncComponent = (
 ) => LegacyAsyncReturnValue | undefined
 
 const normalizedAsyncComponentMap = new Map<LegacyAsyncComponent, Component>()
-
+// 转换遗留的异步组件
 export function convertLegacyAsyncComponent(comp: LegacyAsyncComponent) {
   if (normalizedAsyncComponentMap.has(comp)) {
     return normalizedAsyncComponentMap.get(comp)!
@@ -36,7 +36,9 @@ export function convertLegacyAsyncComponent(comp: LegacyAsyncComponent) {
   const res = comp(resolve!, reject!)
 
   let converted: Component
+  // 查看组件返回是否是promise
   if (isPromise(res)) {
+    // 指向定义的异步组件
     converted = defineAsyncComponent(() => res)
   } else if (isObject(res) && !isVNode(res) && !isArray(res)) {
     converted = defineAsyncComponent({
@@ -52,5 +54,6 @@ export function convertLegacyAsyncComponent(comp: LegacyAsyncComponent) {
     converted = comp as any // probably a v3 functional comp
   }
   normalizedAsyncComponentMap.set(comp, converted)
+  // 返回组件内容
   return converted
 }

@@ -3,7 +3,7 @@ import { inject } from '../apiInject'
 import { ComponentInternalInstance, Data } from '../component'
 import { ComponentOptions, resolveMergedOptions } from '../componentOptions'
 import { DeprecationTypes, warnDeprecation } from './compatConfig'
-
+// 创建默认的属性this
 export function createPropsDefaultThis(
   instance: ComponentInternalInstance,
   rawProps: Data,

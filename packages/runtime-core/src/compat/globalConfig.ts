@@ -36,6 +36,7 @@ export type LegacyConfig = {
 }
 
 // dev only
+// 安装 旧版配置警告
 export function installLegacyConfigWarnings(config: AppConfig) {
   const legacyConfigOptions: Record<string, DeprecationTypes> = {
     silent: DeprecationTypes.CONFIG_SILENT,
@@ -61,7 +62,7 @@ export function installLegacyConfigWarnings(config: AppConfig) {
     })
   })
 }
-
+// 安装旧版合并策略开始
 export function installLegacyOptionMergeStrats(config: AppConfig) {
   config.optionMergeStrategies = new Proxy({} as any, {
     get(target, key) {

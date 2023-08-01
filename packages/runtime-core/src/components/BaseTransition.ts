@@ -92,7 +92,7 @@ export interface TransitionElement {
   _enterCb?: PendingCallback
   _leaveCb?: PendingCallback
 }
-
+// 使用转换的state
 export function useTransitionState(): TransitionState {
   const state: TransitionState = {
     isMounted: false,
@@ -106,6 +106,7 @@ export function useTransitionState(): TransitionState {
   onBeforeUnmount(() => {
     state.isUnmounting = true
   })
+  // 返回state
   return state
 }
 

@@ -38,7 +38,7 @@ import {
   isCompatEnabled
 } from './compatConfig'
 import { compatModelEventPrefix } from './componentVModel'
-
+// 转换旧版的渲染函数
 export function convertLegacyRenderFn(instance: ComponentInternalInstance) {
   const Component = instance.type as ComponentOptions
   const render = Component.render as InternalRenderFunction | undefined
@@ -57,6 +57,7 @@ export function convertLegacyRenderFn(instance: ComponentInternalInstance) {
   }
 
   // v2 render function, try to provide compat
+  // 检查启用兼容
   if (checkCompatEnabled(DeprecationTypes.RENDER_FUNCTION, instance)) {
     const wrapped = (Component.render = function compatRender() {
       // @ts-ignore
@@ -116,37 +117,46 @@ export function compatH(
   props?: Data & LegacyVNodeProps,
   children?: LegacyVNodeChildren
 ): VNode
-
+// 兼容性
 export function compatH(
   type: any,
   propsOrChildren?: any,
   children?: any
 ): VNode {
+  // 如果类型为假类型指向comment
   if (!type) {
     type = Comment
   }
 
   // to support v2 string component name look!up
+  // 如果类型为字符串
   if (typeof type === 'string') {
+    // 指向函数返回值
     const t = hyphenate(type)
+    // 如果是转换组件或都是keep-alive组件
     if (t === 'transition' || t === 'transition-group' || t === 'keep-alive') {
       // since transition and transition-group are runtime-dom-specific,
       // we cannot import them directly here. Instead they are registered using
       // special keys in @vue/compat entry.
       type = `__compat__${t}`
     }
+    // 解析动态组件
     type = resolveDynamicComponent(type)
   }
 
   const l = arguments.length
+  // 如果是数组
   const is2ndArgArrayChildren = isArray(propsOrChildren)
+  // 如果参数长度为2或者 是第二个参数的元素
   if (l === 2 || is2ndArgArrayChildren) {
     if (isObject(propsOrChildren) && !is2ndArgArrayChildren) {
       // single vnode without props
       if (isVNode(propsOrChildren)) {
+        // 转换旧版slot
         return convertLegacySlots(createVNode(type, null, [propsOrChildren]))
       }
       // props without children
+        // 转换旧版slot
       return convertLegacySlots(
         convertLegacyDirectives(
           createVNode(type, convertLegacyProps(propsOrChildren, type)),
@@ -155,12 +165,14 @@ export function compatH(
       )
     } else {
       // omit props
+        // 转换旧版slot
       return convertLegacySlots(createVNode(type, null, propsOrChildren))
     }
   } else {
     if (isVNode(children)) {
       children = [children]
     }
+    // 转换旧版slot
     return convertLegacySlots(
       convertLegacyDirectives(
         createVNode(type, convertLegacyProps(propsOrChildren, type), children),
@@ -169,11 +181,11 @@ export function compatH(
     )
   }
 }
-
+// 跳过旧版的根属性
 const skipLegacyRootLevelProps = /*#__PURE__*/ makeMap(
   'staticStyle,staticClass,directives,model,hook'
 )
-
+// 转换旧版的属性
 function convertLegacyProps(
   legacyProps: LegacyVNodeProps | undefined,
   type: any
@@ -186,10 +198,12 @@ function convertLegacyProps(
 
   for (const key in legacyProps) {
     if (key === 'attrs' || key === 'domProps' || key === 'props') {
+      // 扩展
       extend(converted, legacyProps[key])
     } else if (key === 'on' || key === 'nativeOn') {
       const listeners = legacyProps[key]
       for (const event in listeners) {
+        // 转换旧版事件KEY
         let handlerKey = convertLegacyEventKey(event)
         if (key === 'nativeOn') handlerKey += `Native`
         const existing = converted[handlerKey]
@@ -202,15 +216,18 @@ function convertLegacyProps(
           }
         }
       }
+      // 如果跳过旧版的根级属笥为假
     } else if (!skipLegacyRootLevelProps(key)) {
       converted[key] = legacyProps[key as keyof LegacyVNodeProps]
     }
   }
 
   if (legacyProps.staticClass) {
+    // 规范围类
     converted.class = normalizeClass([legacyProps.staticClass, converted.class])
   }
   if (legacyProps.staticStyle) {
+    // 规范样式
     converted.style = normalizeStyle([legacyProps.staticStyle, converted.style])
   }
 
@@ -220,10 +237,10 @@ function convertLegacyProps(
     converted[prop] = legacyProps.model.value
     converted[compatModelEventPrefix + event] = legacyProps.model.callback
   }
-
+  // 返回转换
   return converted
 }
-
+// 转换桌版的事件key
 function convertLegacyEventKey(event: string): string {
   // normalize v2 event prefixes
   if (event[0] === '&') {
@@ -235,13 +252,15 @@ function convertLegacyEventKey(event: string): string {
   if (event[0] === '!') {
     event = event.slice(1) + 'Capture'
   }
+  // 返回方法
   return toHandlerKey(event)
 }
-
+// 转换旧版的指令
 function convertLegacyDirectives(
   vnode: VNode,
   props?: LegacyVNodeProps
 ): VNode {
+  // 如果属性为真与属性指令为真返回指令否则返回节点
   if (props && props.directives) {
     return withDirectives(
       vnode,
@@ -257,7 +276,7 @@ function convertLegacyDirectives(
   }
   return vnode
 }
-
+// 转换旧版slot
 function convertLegacySlots(vnode: VNode): VNode {
   const { props, children } = vnode
 
@@ -299,10 +318,10 @@ function convertLegacySlots(vnode: VNode): VNode {
   if (slots) {
     normalizeChildren(vnode, slots)
   }
-
+// 返回节点
   return vnode
 }
-
+// 默认转换旧版节点属性
 export function defineLegacyVNodeProperties(vnode: VNode) {
   /* istanbul ignore if */
   if (

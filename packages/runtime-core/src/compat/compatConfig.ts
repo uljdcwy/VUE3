@@ -424,17 +424,19 @@ export const deprecationData: Record<DeprecationTypes, DeprecationData> = {
       `suppress this warning via { PRIVATE_APIS: 'suppress-warning' }.`
   }
 }
-
+// 上下文对象中的警告对象
 const instanceWarned: Record<string, true> = Object.create(null)
+// 警告数
 const warnCount: Record<string, number> = Object.create(null)
 
 // test only
 let warningEnabled = true
 
+// 切换描述警告
 export function toggleDeprecationWarning(flag: boolean) {
   warningEnabled = flag
 }
-
+// 警告描述
 export function warnDeprecation(
   key: DeprecationTypes,
   instance: ComponentInternalInstance | null,
@@ -446,10 +448,11 @@ export function warnDeprecation(
   if (__TEST__ && !warningEnabled) {
     return
   }
-
+  // 获取当前的上下文对象
   instance = instance || getCurrentInstance()
 
   // check user config
+  // 获取兼容循环的KEY
   const config = getCompatConfigForKey(key, instance)
   if (config === 'suppress-warning') {
     return
@@ -501,7 +504,7 @@ export type CompatConfig = Partial<
 export const globalCompatConfig: CompatConfig = {
   MODE: 2
 }
-
+// 全局兼容配置
 export function configureCompat(config: CompatConfig) {
   if (__DEV__) {
     validateCompatConfig(config)
@@ -513,6 +516,7 @@ const seenConfigObjects = /*#__PURE__*/ new WeakSet<CompatConfig>()
 const warnedInvalidKeys: Record<string, boolean> = {}
 
 // dev only
+// 验证兼容容配置
 export function validateCompatConfig(
   config: CompatConfig,
   instance?: ComponentInternalInstance
@@ -550,7 +554,7 @@ export function validateCompatConfig(
     )
   }
 }
-
+// 获取兼容配置的键
 export function getCompatConfigForKey(
   key: DeprecationTypes | 'MODE',
   instance: ComponentInternalInstance | null
@@ -562,7 +566,7 @@ export function getCompatConfigForKey(
   }
   return globalCompatConfig[key]
 }
-
+// 是兼容启用
 export function isCompatEnabled(
   key: DeprecationTypes,
   instance: ComponentInternalInstance | null,
@@ -575,7 +579,7 @@ export function isCompatEnabled(
 
   const rawMode = getCompatConfigForKey('MODE', instance) || 2
   const val = getCompatConfigForKey(key, instance)
-
+  // 判断是函数
   const mode = isFunction(rawMode)
     ? rawMode(instance && instance.type)
     : rawMode
@@ -590,11 +594,13 @@ export function isCompatEnabled(
 /**
  * Use this for features that are completely removed in non-compat build.
  */
+// 静态资源启用
 export function assertCompatEnabled(
   key: DeprecationTypes,
   instance: ComponentInternalInstance | null,
   ...args: any[]
 ) {
+  // 是启用兼容为假
   if (!isCompatEnabled(key, instance)) {
     throw new Error(`${key} compat has been disabled.`)
   } else if (__DEV__) {
@@ -606,6 +612,7 @@ export function assertCompatEnabled(
  * Use this for features where legacy usage is still possible, but will likely
  * lead to runtime error if compat is disabled. (warn in all cases)
  */
+// 软静态资源兼容启用
 export function softAssertCompatEnabled(
   key: DeprecationTypes,
   instance: ComponentInternalInstance | null,
@@ -622,6 +629,7 @@ export function softAssertCompatEnabled(
  * behavior in 2 vs 3. Only warn if compat is enabled.
  * e.g. render function
  */
+// 检查兼容启用
 export function checkCompatEnabled(
   key: DeprecationTypes,
   instance: ComponentInternalInstance | null,

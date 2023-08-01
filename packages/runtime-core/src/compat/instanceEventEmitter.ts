@@ -11,7 +11,7 @@ const eventRegistryMap = /*#__PURE__*/ new WeakMap<
   ComponentInternalInstance,
   EventRegistry
 >()
-
+// 获取注册方法
 export function getRegistry(
   instance: ComponentInternalInstance
 ): EventRegistry {
@@ -21,15 +21,18 @@ export function getRegistry(
   }
   return events!
 }
-
+// on方法
 export function on(
   instance: ComponentInternalInstance,
   event: string | string[],
   fn: Function
 ) {
+  // 如果方法是数组
   if (isArray(event)) {
+    // 循环注册
     event.forEach(e => on(instance, e, fn))
   } else {
+    // 如果event有hook: 启用断言兼容
     if (event.startsWith('hook:')) {
       assertCompatEnabled(
         DeprecationTypes.INSTANCE_EVENT_HOOKS,
@@ -37,14 +40,17 @@ export function on(
         event
       )
     } else {
+      // 启用断言兼容
       assertCompatEnabled(DeprecationTypes.INSTANCE_EVENT_EMITTER, instance)
     }
+    // 获取注册方法
     const events = getRegistry(instance)
     ;(events[event] || (events[event] = [])).push(fn)
   }
+  // 返回上下文代理对象
   return instance.proxy
 }
-
+// once方法
 export function once(
   instance: ComponentInternalInstance,
   event: string,
@@ -58,25 +64,31 @@ export function once(
   on(instance, event, wrapped)
   return instance.proxy
 }
-
+// off方法
 export function off(
   instance: ComponentInternalInstance,
   event?: string | string[],
   fn?: Function
 ) {
+  // 启用断言兼容
   assertCompatEnabled(DeprecationTypes.INSTANCE_EVENT_EMITTER, instance)
+  // 指向上下文代理方法
   const vm = instance.proxy
   // all
+  // 如果event为假
   if (!event) {
+    // 注册event
     eventRegistryMap.set(instance, Object.create(null))
     return vm
   }
   // array of events
+  // 如果event为数组注册多个方汉
   if (isArray(event)) {
     event.forEach(e => off(instance, e, fn))
     return vm
   }
   // specific event
+  // 获取event
   const events = getRegistry(instance)
   const cbs = events[event!]
   if (!cbs) {
@@ -87,9 +99,10 @@ export function off(
     return vm
   }
   events[event!] = cbs.filter(cb => !(cb === fn || (cb as any).fn === fn))
+  // 返回vm
   return vm
 }
-
+// emit方法
 export function emit(
   instance: ComponentInternalInstance,
   event: string,
@@ -97,6 +110,7 @@ export function emit(
 ) {
   const cbs = getRegistry(instance)[event]
   if (cbs) {
+    // 
     callWithAsyncErrorHandling(
       cbs.map(cb => cb.bind(instance.proxy)),
       instance,
@@ -104,5 +118,6 @@ export function emit(
       args
     )
   }
+  // 返回上下文对象的代理对象
   return instance.proxy
 }

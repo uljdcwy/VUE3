@@ -54,7 +54,7 @@ export interface LegacyPublicProperties {
   $children: LegacyPublicProperties[]
   $listeners: Record<string, Function | Function[]>
 }
-
+// 安装兼容实例属性
 export function installCompatInstanceProperties(map: PublicPropertiesMap) {
   const set = (target: any, key: any, val: any) => {
     target[key] = val
@@ -63,7 +63,7 @@ export function installCompatInstanceProperties(map: PublicPropertiesMap) {
   const del = (target: any, key: any) => {
     delete target[key]
   }
-
+  // 扩展图方法
   extend(map, {
     $set: i => {
       assertCompatEnabled(DeprecationTypes.INSTANCE_SET, i)
@@ -123,7 +123,9 @@ export function installCompatInstanceProperties(map: PublicPropertiesMap) {
   } as PublicPropertiesMap)
 
   /* istanbul ignore if */
+  // 如果启用兼容
   if (isCompatEnabled(DeprecationTypes.PRIVATE_APIS, null)) {
+    // 扩展资源图
     extend(map, {
       // needed by many libs / render fns
       $vnode: i => i.vnode,

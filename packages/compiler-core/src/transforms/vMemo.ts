@@ -12,7 +12,7 @@ import {
 import { WITH_MEMO } from '../runtimeHelpers'
 
 const seen = new WeakSet()
-
+// 此文件主要有转换 memo 函数此函数主要用来在肝存在加入节点指令，如果节点被指令被执行会将节点缓存在第二次更新时缓存中有节点会使节点不再更新
 export const transformMemo: NodeTransform = (node, context) => {
   if (node.type === NodeTypes.ELEMENT) {
     const dir = findDir(node, 'memo')
