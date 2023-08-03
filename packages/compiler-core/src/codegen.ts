@@ -323,6 +323,7 @@ function genFunctionPreamble(ast: RootNode, context: CodegenContext) {
     runtimeGlobalName,
     ssrRuntimeModuleName
   } = context
+  // VUE绑定的对象名称
   const VueBinding =
     !__BROWSER__ && ssr
       ? `require(${JSON.stringify(runtimeModuleName)})`
@@ -331,7 +332,8 @@ function genFunctionPreamble(ast: RootNode, context: CodegenContext) {
   // In prefix mode, we place the const declaration at top so it's done
   // only once; But if we not prefixing, we place the declaration inside the
   // with block so it doesn't incur the `in` check cost for every helper access.
-  const helpers = Array.from(ast.helpers)
+  const helpers = Array.from(ast.helpers);
+  // helpers的长度大于 0 
   if (helpers.length > 0) {
     if (!__BROWSER__ && prefixIdentifiers) {
       push(`const { ${helpers.map(aliasHelper).join(', ')} } = ${VueBinding}\n`)

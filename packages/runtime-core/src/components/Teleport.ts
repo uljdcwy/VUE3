@@ -19,21 +19,23 @@ export interface TeleportProps {
   to: string | RendererElement | null | undefined
   disabled?: boolean
 }
-
+// 是可挂载元素
 export const isTeleport = (type: any): boolean => type.__isTeleport
-
+// 是禁用的移动元素
 const isTeleportDisabled = (props: VNode['props']): boolean =>
   props && (props.disabled || props.disabled === '')
-
+// 是目标SVG判断
 const isTargetSVG = (target: RendererElement): boolean =>
   typeof SVGElement !== 'undefined' && target instanceof SVGElement
-
+// 解决目标
 const resolveTarget = <T = RendererElement>(
   props: TeleportProps | null,
   select: RendererOptions['querySelector']
 ): T | null => {
   const targetSelector = props && props.to
+  // 如果是字符串
   if (isString(targetSelector)) {
+    // 选择为假时
     if (!select) {
       __DEV__ &&
         warn(
@@ -42,7 +44,9 @@ const resolveTarget = <T = RendererElement>(
         )
       return null
     } else {
+      // 获取目标
       const target = select(targetSelector)
+      // 如果目标为假时
       if (!target) {
         __DEV__ &&
           warn(
@@ -55,15 +59,18 @@ const resolveTarget = <T = RendererElement>(
       return target as T
     }
   } else {
+    // 如果是开发环境
     if (__DEV__ && !targetSelector && !isTeleportDisabled(props)) {
       warn(`Invalid Teleport target: ${targetSelector}`)
     }
     return targetSelector as T
   }
 }
-
+// 移动组件对象
 export const TeleportImpl = {
+  // 默认为真
   __isTeleport: true,
+  // 进程方法定义
   process(
     n1: TeleportVNode | null,
     n2: TeleportVNode,
@@ -76,47 +83,61 @@ export const TeleportImpl = {
     optimized: boolean,
     internals: RendererInternals
   ) {
+    // 解构挂载子元素 更新子元素 更新块级子元素，
     const {
       mc: mountChildren,
       pc: patchChildren,
       pbc: patchBlockChildren,
       o: { insert, querySelector, createText, createComment }
     } = internals
-
+    // 是可移动
     const disabled = isTeleportDisabled(n2.props)
+    // 解构属性
     let { shapeFlag, children, dynamicChildren } = n2
 
     // #3302
     // HMR updated, force full diff
+    // 如果开发环境为真与是热更新为真
     if (__DEV__ && isHmrUpdating) {
       optimized = false
       dynamicChildren = null
     }
-
+    // 如果n1 为 null
     if (n1 == null) {
       // insert anchors in the main view
+      // 如要是开发环境为真，创建内容并指向
       const placeholder = (n2.el = __DEV__
         ? createComment('teleport start')
         : createText(''))
+        // 设置主锚位置
       const mainAnchor = (n2.anchor = __DEV__
         ? createComment('teleport end')
         : createText(''))
+        // 插入元素
       insert(placeholder, container, anchor)
+      // 插入元素
       insert(mainAnchor, container, anchor)
+      // 获取目标位置
       const target = (n2.target = resolveTarget(n2.props, querySelector))
+      // 指向目标锚点
       const targetAnchor = (n2.targetAnchor = createText(''))
+      // 如果目标锚点为真
       if (target) {
+        // 插入内容
         insert(targetAnchor, target)
         // #2652 we could be teleporting from a non-SVG tree into an SVG tree
         isSVG = isSVG || isTargetSVG(target)
+        // 如果开发环境为真与不是disabled
       } else if (__DEV__ && !disabled) {
         warn('Invalid Teleport target on mount:', target, `(${typeof target})`)
       }
-
+      // 挂载内容
       const mount = (container: RendererElement, anchor: RendererNode) => {
         // Teleport *always* has Array children. This is enforced in both the
         // compiler and vnode children normalization.
+        // 
         if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+          // 挂载子元素
           mountChildren(
             children as VNodeArrayChildren,
             container,
@@ -129,25 +150,36 @@ export const TeleportImpl = {
           )
         }
       }
-
+      // 如果禁用移动
       if (disabled) {
+        // 挂载内容
         mount(container, mainAnchor)
       } else if (target) {
+        // 挂载锚点
         mount(target, targetAnchor)
       }
     } else {
       // update content
+      // 更新元素指向
       n2.el = n1.el
+      // 更新锚指向
       const mainAnchor = (n2.anchor = n1.anchor)!
+      // 更新目标指向
       const target = (n2.target = n1.target)!
+      // 更新目标锚指向
       const targetAnchor = (n2.targetAnchor = n1.targetAnchor)!
+      // 是移动的默认组件
       const wasDisabled = isTeleportDisabled(n1.props)
+      // 获取当前内容
       const currentContainer = wasDisabled ? container : target
+      // 获取当前锚
       const currentAnchor = wasDisabled ? mainAnchor : targetAnchor
+      // 是SVG或者 是目标SVG
       isSVG = isSVG || isTargetSVG(target)
-
+      // 如果活动子元素为真
       if (dynamicChildren) {
         // fast path when the teleport happens to be a block root
+        // 更新块子元素
         patchBlockChildren(
           n1.dynamicChildren!,
           dynamicChildren,
@@ -160,8 +192,10 @@ export const TeleportImpl = {
         // even in block tree mode we need to make sure all root-level nodes
         // in the teleport inherit previous DOM references so that they can
         // be moved in future patches.
+        // 遍历静态子元素
         traverseStaticChildren(n1, n2, true)
       } else if (!optimized) {
+        // 更新子元素
         patchChildren(
           n1,
           n2,
@@ -174,11 +208,13 @@ export const TeleportImpl = {
           false
         )
       }
-
+      // 如果禁用为真
       if (disabled) {
+        // 如果有禁用为假
         if (!wasDisabled) {
           // enabled -> disabled
           // move into main container
+          // 移动组件同内容
           moveTeleport(
             n2,
             container,
@@ -189,12 +225,16 @@ export const TeleportImpl = {
         }
       } else {
         // target changed
+        // 如果属笥指向不相同
         if ((n2.props && n2.props.to) !== (n1.props && n1.props.to)) {
+          // 获取下一个目标
           const nextTarget = (n2.target = resolveTarget(
             n2.props,
             querySelector
           ))
+          // 如果下一个目标为真
           if (nextTarget) {
+            // 移动 组件
             moveTeleport(
               n2,
               nextTarget,
@@ -212,6 +252,7 @@ export const TeleportImpl = {
         } else if (wasDisabled) {
           // disabled -> enabled
           // move into teleport target
+          // 移动组件s
           moveTeleport(
             n2,
             target,
@@ -222,10 +263,10 @@ export const TeleportImpl = {
         }
       }
     }
-
+    // 更新CSS声名
     updateCssVars(n2)
   },
-
+  // 移动内容
   remove(
     vnode: VNode,
     parentComponent: ComponentInternalInstance | null,
@@ -234,16 +275,20 @@ export const TeleportImpl = {
     { um: unmount, o: { remove: hostRemove } }: RendererInternals,
     doRemove: Boolean
   ) {
+    // 解构内容
     const { shapeFlag, children, anchor, targetAnchor, target, props } = vnode
-
+    // 如果目标为真，执行函数
     if (target) {
       hostRemove(targetAnchor!)
     }
 
     // an unmounted teleport should always remove its children if not disabled
+    // 如要do remove为真，与是移动禁用为假时
     if (doRemove || !isTeleportDisabled(props)) {
+      // 函数执行
       hostRemove(anchor!)
       if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        // 循环子元素解除挂载
         for (let i = 0; i < (children as VNode[]).length; i++) {
           const child = (children as VNode[])[i]
           unmount(
@@ -267,7 +312,7 @@ export const enum TeleportMoveTypes {
   TOGGLE, // enable / disable
   REORDER // moved in the main view
 }
-
+// 移动组件
 function moveTeleport(
   vnode: VNode,
   container: RendererElement,
@@ -276,13 +321,18 @@ function moveTeleport(
   moveType: TeleportMoveTypes = TeleportMoveTypes.REORDER
 ) {
   // move target anchor if this is a target change.
+  // 如果移动类型为 TARGET_CHANGE
   if (moveType === TeleportMoveTypes.TARGET_CHANGE) {
+    // 插入元素
     insert(vnode.targetAnchor!, container, parentAnchor)
   }
+  // 解构
   const { el, anchor, shapeFlag, children, props } = vnode
+  // 改变指向
   const isReorder = moveType === TeleportMoveTypes.REORDER
   // move main view anchor if this is a re-order.
   if (isReorder) {
+    // 插入元素
     insert(el!, container, parentAnchor)
   }
   // if this is a re-order and teleport is enabled (content is in target)
@@ -291,6 +341,7 @@ function moveTeleport(
   if (!isReorder || isTeleportDisabled(props)) {
     // Teleport has either Array children or no children.
     if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+      // 循环子节点，移动内容
       for (let i = 0; i < (children as VNode[]).length; i++) {
         move(
           (children as VNode[])[i],
@@ -303,6 +354,7 @@ function moveTeleport(
   }
   // move main view anchor if this is a re-order.
   if (isReorder) {
+    // 插入内容
     insert(anchor!, container, parentAnchor)
   }
 }
@@ -342,7 +394,9 @@ function hydrateTeleport(
     const targetNode =
       (target as TeleportTargetElement)._lpa || target.firstChild
     if (vnode.shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+      // 如果是移动禁用
       if (isTeleportDisabled(vnode.props)) {
+        // 节点锚指向
         vnode.anchor = hydrateChildren(
           nextSibling(node),
           vnode,
@@ -352,14 +406,18 @@ function hydrateTeleport(
           slotScopeIds,
           optimized
         )
+        // 节点目标指向
         vnode.targetAnchor = targetNode
       } else {
+        // 锚指向下一个同级节点
         vnode.anchor = nextSibling(node)
 
         // lookahead until we find the target anchor
         // we cannot rely on return value of hydrateChildren() because there
         // could be nested teleports
+        // 目标锚指向
         let targetAnchor = targetNode
+        // 目标锚循环
         while (targetAnchor) {
           targetAnchor = nextSibling(targetAnchor)
           if (
@@ -373,7 +431,7 @@ function hydrateTeleport(
             break
           }
         }
-
+        // 
         hydrateChildren(
           targetNode,
           vnode,
@@ -385,8 +443,10 @@ function hydrateTeleport(
         )
       }
     }
+    // 更新CSS声名
     updateCssVars(vnode)
   }
+  // 返回下一个同级元素
   return vnode.anchor && nextSibling(vnode.anchor as Node)
 }
 
@@ -400,7 +460,7 @@ export const Teleport = TeleportImpl as unknown as {
     }
   }
 }
-
+// 更新CSS声名
 function updateCssVars(vnode: VNode) {
   // presence of .ut method indicates owner component uses css vars.
   // code path here can assume browser environment.
