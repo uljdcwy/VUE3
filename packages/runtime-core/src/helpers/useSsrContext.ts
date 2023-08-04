@@ -2,7 +2,7 @@ import { inject } from '../apiInject'
 import { warn } from '../warning'
 
 export const ssrContextKey = Symbol.for('v-scx')
-
+// 使用ssr的上下文对象，主要用来获取ctx
 export const useSSRContext = <T = Record<string, any>>() => {
   if (!__GLOBAL__) {
     const ctx = inject<T>(ssrContextKey)

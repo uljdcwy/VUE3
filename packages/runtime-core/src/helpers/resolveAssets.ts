@@ -19,6 +19,7 @@ export type AssetTypes = typeof COMPONENTS | typeof DIRECTIVES | typeof FILTERS
 /**
  * @private
  */
+// 解析组件
 export function resolveComponent(
   name: string,
   maybeSelfReference?: boolean
@@ -31,11 +32,15 @@ export const NULL_DYNAMIC_COMPONENT = Symbol.for('v-ndc')
 /**
  * @private
  */
+// 解析活动组件
 export function resolveDynamicComponent(component: unknown): VNodeTypes {
+  // 如果是字符串
   if (isString(component)) {
+    // 返回解析的资源
     return resolveAsset(COMPONENTS, component, false) || component
   } else {
     // invalid types will fallthrough to createVNode and raise warning
+    // 返回组件
     return (component || NULL_DYNAMIC_COMPONENT) as any
   }
 }
@@ -43,6 +48,7 @@ export function resolveDynamicComponent(component: unknown): VNodeTypes {
 /**
  * @private
  */
+// 解析指令
 export function resolveDirective(name: string): Directive | undefined {
   return resolveAsset(DIRECTIVES, name)
 }
@@ -51,6 +57,7 @@ export function resolveDirective(name: string): Directive | undefined {
  * v2 compat only
  * @internal
  */
+// 解析过虑器
 export function resolveFilter(name: string): Function | undefined {
   return resolveAsset(FILTERS, name)
 }
@@ -59,6 +66,7 @@ export function resolveFilter(name: string): Function | undefined {
  * @private
  * overload 1: components
  */
+// 解析资源
 function resolveAsset(
   type: typeof COMPONENTS,
   name: string,
@@ -66,6 +74,7 @@ function resolveAsset(
   maybeSelfReference?: boolean
 ): ConcreteComponent | undefined
 // overload 2: directives
+// 解析资源
 function resolveAsset(
   type: typeof DIRECTIVES,
   name: string
@@ -74,6 +83,7 @@ function resolveAsset(
 // overload 3: filters (compat only)
 function resolveAsset(type: typeof FILTERS, name: string): Function | undefined
 // implementation
+// 解析资源
 function resolveAsset(
   type: AssetTypes,
   name: string,
@@ -86,6 +96,7 @@ function resolveAsset(
 
     // explicit self name has highest priority
     if (type === COMPONENTS) {
+      // 获取组件名称
       const selfName = getComponentName(
         Component,
         false /* do not include inferred name to avoid breaking existing code */
@@ -106,12 +117,12 @@ function resolveAsset(
       resolve(instance[type] || (Component as ComponentOptions)[type], name) ||
       // global registration
       resolve(instance.appContext[type], name)
-
+    // 返回组件
     if (!res && maybeSelfReference) {
       // fallback to implicit self-reference
       return Component
     }
-
+    // 输入警告
     if (__DEV__ && warnMissing && !res) {
       const extra =
         type === COMPONENTS
@@ -120,16 +131,17 @@ function resolveAsset(
           : ``
       warn(`Failed to resolve ${type.slice(0, -1)}: ${name}${extra}`)
     }
-
+    // 返回 res
     return res
   } else if (__DEV__) {
+    // 输入警告
     warn(
       `resolve${capitalize(type.slice(0, -1))} ` +
         `can only be used in render() or setup().`
     )
   }
 }
-
+// 解析
 function resolve(registry: Record<string, any> | undefined, name: string) {
   return (
     registry &&

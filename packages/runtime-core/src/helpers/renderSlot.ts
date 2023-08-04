@@ -22,6 +22,7 @@ import { isAsyncWrapper } from '../apiAsyncComponent'
  * Compiler runtime helper for rendering `<slot/>`
  * @private
  */
+// 渲染SLOT
 export function renderSlot(
   slots: Slots,
   name: string,
@@ -31,19 +32,23 @@ export function renderSlot(
   fallback?: () => VNodeArrayChildren,
   noSlotted?: boolean
 ): VNode {
+  // 如果当前渲染的上下文对象中的isCE 为真或都
   if (
     currentRenderingInstance!.isCE ||
     (currentRenderingInstance!.parent &&
       isAsyncWrapper(currentRenderingInstance!.parent) &&
       currentRenderingInstance!.parent.isCE)
   ) {
+    //  如果名称不为默认必别矫情名称指向名称
     if (name !== 'default') props.name = name
+    // 创建节点
     return createVNode('slot', props, fallback && fallback())
   }
-
+  // 获取slot
   let slot = slots[name]
 
   if (__DEV__ && slot && slot.length > 1) {
+    // 输入警告
     warn(
       `SSR-optimized slot function detected in a non-SSR-optimized render ` +
         `function. You need to mark this component with $dynamic-slots in the ` +
@@ -59,8 +64,11 @@ export function renderSlot(
   if (slot && (slot as ContextualRenderFn)._c) {
     ;(slot as ContextualRenderFn)._d = false
   }
+  // 打开块
   openBlock()
+  // 验证slot是否有效
   const validSlotContent = slot && ensureValidVNode(slot(props))
+  // 创建块内容
   const rendered = createBlock(
     Fragment,
     {
@@ -82,10 +90,12 @@ export function renderSlot(
   if (slot && (slot as ContextualRenderFn)._c) {
     ;(slot as ContextualRenderFn)._d = true
   }
+  // 返回创建的块内容
   return rendered
 }
-
+// 验证SLOT方法
 function ensureValidVNode(vnodes: VNodeArrayChildren) {
+  // 循环节点并做比较
   return vnodes.some(child => {
     if (!isVNode(child)) return true
     if (child.type === Comment) return false
