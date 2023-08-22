@@ -476,11 +476,11 @@ export interface ComponentInternalInstance {
    */
   ut?: (vars?: Record<string, string>) => void
 }
-
+// 创建APP上下文对象
 const emptyAppContext = createAppContext()
 
 let uid = 0
-
+// 创建组件上下文对象
 export function createComponentInstance(
   vnode: VNode,
   parent: ComponentInternalInstance | null,
@@ -586,7 +586,7 @@ export function createComponentInstance(
 }
 
 export let currentInstance: ComponentInternalInstance | null = null
-
+// 获取上下文对象
 export const getCurrentInstance: () => ComponentInternalInstance | null = () =>
   currentInstance || currentRenderingInstance
 
@@ -627,19 +627,19 @@ if (__SSR__) {
     currentInstance = i
   }
 }
-
+// 设置上下文对象
 export const setCurrentInstance = (instance: ComponentInternalInstance) => {
   internalSetCurrentInstance(instance)
   instance.scope.on()
 }
-
+// 解除设置上下文对象
 export const unsetCurrentInstance = () => {
   currentInstance && currentInstance.scope.off()
   internalSetCurrentInstance(null)
 }
 
 const isBuiltInTag = /*#__PURE__*/ makeMap('slot,component')
-
+// 验证组件名称
 export function validateComponentName(name: string, config: AppConfig) {
   const appIsNativeTag = config.isNativeTag || NO
   if (isBuiltInTag(name) || appIsNativeTag(name)) {
@@ -648,19 +648,19 @@ export function validateComponentName(name: string, config: AppConfig) {
     )
   }
 }
-
+// 判断是状态组件
 export function isStatefulComponent(instance: ComponentInternalInstance) {
   return instance.vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT
 }
 
 export let isInSSRComponentSetup = false
-
+// 安装组件
 export function setupComponent(
   instance: ComponentInternalInstance,
   isSSR = false
 ) {
   isInSSRComponentSetup = isSSR
-
+  // 解构属性与子元素
   const { props, children } = instance.vnode
   const isStateful = isStatefulComponent(instance)
   initProps(instance, props, isStateful, isSSR)
@@ -670,9 +670,10 @@ export function setupComponent(
     ? setupStatefulComponent(instance, isSSR)
     : undefined
   isInSSRComponentSetup = false
+  // 返回指向
   return setupResult
 }
-
+// 安装状态组件
 function setupStatefulComponent(
   instance: ComponentInternalInstance,
   isSSR: boolean
@@ -681,6 +682,7 @@ function setupStatefulComponent(
 
   if (__DEV__) {
     if (Component.name) {
+      // 验证组件名称
       validateComponentName(Component.name, instance.appContext.config)
     }
     if (Component.components) {
@@ -765,7 +767,7 @@ function setupStatefulComponent(
     finishComponentSetup(instance, isSSR)
   }
 }
-
+// 手动安装结果
 export function handleSetupResult(
   instance: ComponentInternalInstance,
   setupResult: unknown,
@@ -818,6 +820,7 @@ let installWithProxy: (i: ComponentInternalInstance) => void
  * For runtime-dom to register the compiler.
  * Note the exported method uses any to avoid d.ts relying on the compiler types.
  */
+// 注册运行钩子
 export function registerRuntimeCompiler(_compile: any) {
   compile = _compile
   installWithProxy = i => {
@@ -829,7 +832,7 @@ export function registerRuntimeCompiler(_compile: any) {
 
 // dev only
 export const isRuntimeOnly = () => !compile
-
+// 完成组件安装
 export function finishComponentSetup(
   instance: ComponentInternalInstance,
   isSSR: boolean,
@@ -851,6 +854,7 @@ export function finishComponentSetup(
     // only do on-the-fly compile if not in SSR - SSR on-the-fly compilation
     // is done by server-renderer
     if (!isSSR && compile && !Component.render) {
+      // 模版指向
       const template =
         (__COMPAT__ &&
           instance.vnode.props &&
@@ -861,9 +865,11 @@ export function finishComponentSetup(
         if (__DEV__) {
           startMeasure(instance, `compile`)
         }
+        // 解构是自定义元素与钩子选项
         const { isCustomElement, compilerOptions } = instance.appContext.config
         const { delimiters, compilerOptions: componentCompilerOptions } =
           Component
+        // 扩展内容
         const finalCompilerOptions: CompilerOptions = extend(
           extend(
             {
@@ -882,18 +888,21 @@ export function finishComponentSetup(
             extend(finalCompilerOptions.compatConfig, Component.compatConfig)
           }
         }
+        // 指向钩子返回值
         Component.render = compile(template, finalCompilerOptions)
         if (__DEV__) {
+          // 结束测试
           endMeasure(instance, `compile`)
         }
       }
     }
-
+    // 渲渲器指向
     instance.render = (Component.render || NOOP) as InternalRenderFunction
 
     // for runtime-compiled render functions using `with` blocks, the render
     // proxy used needs a different `has` handler which is more performant and
     // also only allows a whitelist of globals to fallthrough.
+    // 安装代理上下文对象
     if (installWithProxy) {
       installWithProxy(instance)
     }
@@ -901,12 +910,17 @@ export function finishComponentSetup(
 
   // support for 2.x options
   if (__FEATURE_OPTIONS_API__ && !(__COMPAT__ && skipOptions)) {
+    // 设置当前的上下文对象
     setCurrentInstance(instance)
+    // 暂停收集
     pauseTracking()
     try {
+      // 应用选项
       applyOptions(instance)
     } finally {
+      // 重置收集
       resetTracking()
+      // 解除上下文对象
       unsetCurrentInstance()
     }
   }
@@ -932,7 +946,7 @@ export function finishComponentSetup(
     }
   }
 }
-
+// 获取属笥的代理对象
 function getAttrsProxy(instance: ComponentInternalInstance): Data {
   return (
     instance.attrsProxy ||
@@ -967,6 +981,7 @@ function getAttrsProxy(instance: ComponentInternalInstance): Data {
 /**
  * Dev-only
  */
+// 获取slot的代理对象
 function getSlotsProxy(instance: ComponentInternalInstance): Slots {
   return (
     instance.slotsProxy ||
@@ -979,9 +994,11 @@ function getSlotsProxy(instance: ComponentInternalInstance): Slots {
   )
 }
 
+// 创建 setup 上下文对象
 export function createSetupContext(
   instance: ComponentInternalInstance
 ): SetupContext {
+  // 导出属性
   const expose: SetupContext['expose'] = exposed => {
     if (__DEV__) {
       if (instance.exposed) {
@@ -1022,6 +1039,7 @@ export function createSetupContext(
       expose
     })
   } else {
+    // 返回对象，
     return {
       get attrs() {
         return getAttrsProxy(instance)
@@ -1032,9 +1050,11 @@ export function createSetupContext(
     }
   }
 }
-
+// 获取导出代理
 export function getExposeProxy(instance: ComponentInternalInstance) {
+  // 如果上下文对象中的导出为真
   if (instance.exposed) {
+    // 返回方法
     return (
       instance.exposeProxy ||
       (instance.exposeProxy = new Proxy(proxyRefs(markRaw(instance.exposed)), {
@@ -1054,9 +1074,10 @@ export function getExposeProxy(instance: ComponentInternalInstance) {
 }
 
 const classifyRE = /(?:^|[-_])(\w)/g
+//
 const classify = (str: string): string =>
   str.replace(classifyRE, c => c.toUpperCase()).replace(/[-_]/g, '')
-
+// 获取组件名称
 export function getComponentName(
   Component: ConcreteComponent,
   includeInferred = true
@@ -1067,38 +1088,43 @@ export function getComponentName(
 }
 
 /* istanbul ignore next */
+// 格式化组件名称
 export function formatComponentName(
   instance: ComponentInternalInstance | null,
   Component: ConcreteComponent,
   isRoot = false
 ): string {
+  // 获取组件名称
   let name = getComponentName(Component)
+  // 如果没有名称与组件文件存在 将文件名称设置为组件名称
   if (!name && Component.__file) {
     const match = Component.__file.match(/([^/\\]+)\.\w+$/)
     if (match) {
       name = match[1]
     }
   }
-
+  // 名存不存在
   if (!name && instance && instance.parent) {
     // try to infer the name based on reverse resolution
     const inferFromRegistry = (registry: Record<string, any> | undefined) => {
+      // 在注册里找组件如果有返回键
       for (const key in registry) {
         if (registry[key] === Component) {
           return key
         }
       }
     }
+    // 获取名称
     name =
       inferFromRegistry(
         instance.components ||
           (instance.parent.type as ComponentOptions).components
       ) || inferFromRegistry(instance.appContext.components)
   }
-
+  // 返回组件名称
   return name ? classify(name) : isRoot ? `App` : `Anonymous`
 }
-
+// 判断是类组件
 export function isClassComponent(value: unknown): value is ClassComponent {
   return isFunction(value) && '__vccOpts' in value
 }

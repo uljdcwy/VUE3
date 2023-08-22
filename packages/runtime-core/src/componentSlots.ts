@@ -79,14 +79,14 @@ export type RawSlots = {
    */
   _?: SlotFlags
 }
-
+// 判断是内部键
 const isInternalKey = (key: string) => key[0] === '_' || key === '$stable'
-
+// 标准化插糟的值
 const normalizeSlotValue = (value: unknown): VNode[] =>
   isArray(value)
     ? value.map(normalizeVNode)
     : [normalizeVNode(value as VNodeChild)]
-
+// 标准化插糟的方法
 const normalizeSlot = (
   key: string,
   rawSlot: Function,
@@ -96,6 +96,7 @@ const normalizeSlot = (
     // already normalized - #5353
     return rawSlot as Slot
   }
+  // 设置上下文对象
   const normalized = withCtx((...args: any[]) => {
     if (__DEV__ && currentInstance) {
       warn(
@@ -104,23 +105,27 @@ const normalizeSlot = (
           `Invoke the slot function inside the render function instead.`
       )
     }
+    // 规格式插粳的值
     return normalizeSlotValue(rawSlot(...args))
   }, ctx) as Slot
   // NOT a compiled slot
   ;(normalized as ContextualRenderFn)._c = false
   return normalized
 }
-
+// 规格式对象插糟
 const normalizeObjectSlots = (
   rawSlots: RawSlots,
   slots: InternalSlots,
   instance: ComponentInternalInstance
 ) => {
+  // 获取上下文对象明
   const ctx = rawSlots._ctx
+  // 循环原始插糟
   for (const key in rawSlots) {
     if (isInternalKey(key)) continue
     const value = rawSlots[key]
     if (isFunction(value)) {
+      // 规格化插糟
       slots[key] = normalizeSlot(key, value, ctx)
     } else if (value != null) {
       if (
@@ -134,13 +139,14 @@ const normalizeObjectSlots = (
           `Non-function value encountered for slot "${key}". ` +
             `Prefer function slots for better performance.`
         )
-      }
+      } // 规格化插糟的值
       const normalized = normalizeSlotValue(value)
       slots[key] = () => normalized
     }
   }
 }
 
+// 规格化节点插糟
 const normalizeVNodeSlots = (
   instance: ComponentInternalInstance,
   children: VNodeNormalizedChildren
@@ -155,10 +161,12 @@ const normalizeVNodeSlots = (
         `Prefer function slots for better performance.`
     )
   }
+  // 规格化插糟的值指向
   const normalized = normalizeSlotValue(children)
+  // 上下文对象中默认的插糟指向
   instance.slots.default = () => normalized
 }
-
+// 初始化插糟
 export const initSlots = (
   instance: ComponentInternalInstance,
   children: VNodeNormalizedChildren
@@ -186,7 +194,7 @@ export const initSlots = (
   }
   def(instance.slots, InternalObjectKey, 1)
 }
-
+// 更新插糟
 export const updateSlots = (
   instance: ComponentInternalInstance,
   children: VNodeNormalizedChildren,
@@ -203,6 +211,7 @@ export const updateSlots = (
         // Parent was HMR updated so slot content may have changed.
         // force update slots and mark instance for hmr as well
         extend(slots, children as Slots)
+        // 解发插糟更新
         trigger(instance, TriggerOpTypes.SET, '$slots')
       } else if (optimized && type === SlotFlags.STABLE) {
         // compiled AND stable.
@@ -221,17 +230,21 @@ export const updateSlots = (
         }
       }
     } else {
+      /// 需要删除的检查
       needDeletionCheck = !(children as RawSlots).$stable
+      // 规格化对象插糟
       normalizeObjectSlots(children as RawSlots, slots, instance)
     }
     deletionComparisonTarget = children as RawSlots
   } else if (children) {
     // non slot object children (direct value) passed to a component
+    // 规格化节点SLOT
     normalizeVNodeSlots(instance, children)
     deletionComparisonTarget = { default: 1 }
   }
 
   // delete stale slots
+  // 删除标记的slot
   if (needDeletionCheck) {
     for (const key in slots) {
       if (!isInternalKey(key) && !(key in deletionComparisonTarget)) {

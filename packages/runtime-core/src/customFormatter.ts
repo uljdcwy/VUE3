@@ -3,7 +3,7 @@ import { EMPTY_OBJ, extend, isArray, isFunction, isObject } from '@vue/shared'
 import { isShallow } from '../../reactivity/src/reactive'
 import { ComponentInternalInstance, ComponentOptions } from './component'
 import { ComponentPublicInstance } from './componentPublicInstance'
-
+// 初始化自定义格式
 export function initCustomFormatter() {
   /* eslint-disable no-restricted-globals */
   if (!__DEV__ || typeof window === 'undefined') {
@@ -104,7 +104,7 @@ export function initCustomFormatter() {
     ])
     return blocks
   }
-
+  // 创建上下文对象中的块
   function createInstanceBlock(type: string, target: any) {
     target = extend({}, target)
     if (!Object.keys(target).length) {
@@ -136,7 +136,7 @@ export function initCustomFormatter() {
       ]
     ]
   }
-
+  // 格式化值 返回格式化的值
   function formatValue(v: unknown, asRaw = true) {
     if (typeof v === 'number') {
       return ['span', numberStyle, v]
@@ -150,7 +150,7 @@ export function initCustomFormatter() {
       return ['span', stringStyle, String(v)]
     }
   }
-
+  // 扩展键
   function extractKeys(instance: ComponentInternalInstance, type: string) {
     const Comp = instance.type
     if (isFunction(Comp)) {
@@ -162,9 +162,10 @@ export function initCustomFormatter() {
         extracted[key] = instance.ctx[key]
       }
     }
+    // 返回扩展
     return extracted
   }
-
+  // 判断KEY是of类型
   function isKeyOfType(Comp: ComponentOptions, key: string, type: string) {
     const opts = Comp[type]
     if (
@@ -180,7 +181,7 @@ export function initCustomFormatter() {
       return true
     }
   }
-
+  // 获取ref标志
   function genRefFlag(v: Ref) {
     if (isShallow(v)) {
       return `ShallowRef`
@@ -190,7 +191,7 @@ export function initCustomFormatter() {
     }
     return `Ref`
   }
-
+  // 开发格式中压入格式
   if ((window as any).devtoolsFormatters) {
     ;(window as any).devtoolsFormatters.push(formatter)
   } else {

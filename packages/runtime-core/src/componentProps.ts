@@ -186,7 +186,7 @@ type NormalizedProp =
 // and an array of prop keys that need value casting (booleans and defaults)
 export type NormalizedProps = Record<string, NormalizedProp>
 export type NormalizedPropsOptions = [NormalizedProps, string[]] | []
-
+// 初始化属性
 export function initProps(
   instance: ComponentInternalInstance,
   rawProps: Data | null,
@@ -196,9 +196,9 @@ export function initProps(
   const props: Data = {}
   const attrs: Data = {}
   def(attrs, InternalObjectKey, 1)
-
+  // 创建空对象
   instance.propsDefaults = Object.create(null)
-
+  // 设置填充属性
   setFullProps(instance, rawProps, props, attrs)
 
   // ensure all declared prop keys are present
@@ -210,46 +210,53 @@ export function initProps(
 
   // validation
   if (__DEV__) {
+    // 验证属性
     validateProps(rawProps || {}, props, instance)
   }
 
   if (isStateful) {
     // stateful
+    //  给属性设置浅投影
     instance.props = isSSR ? props : shallowReactive(props)
   } else {
+    // 如果属生不存在，指向静态属性
     if (!instance.type.props) {
       // functional w/ optional props, props === attrs
       instance.props = attrs
     } else {
       // functional w/ declared props
+      // 指向原始属性
       instance.props = props
     }
   }
   instance.attrs = attrs
 }
-
+// 判断是热替换的上下文对象
 function isInHmrContext(instance: ComponentInternalInstance | null) {
   while (instance) {
     if (instance.type.__hmrId) return true
     instance = instance.parent
   }
 }
-
+// 更新属性
 export function updateProps(
   instance: ComponentInternalInstance,
   rawProps: Data | null,
   rawPrevProps: Data | null,
   optimized: boolean
 ) {
+  // 解构属性，属性，节点更指定义的类型
   const {
     props,
     attrs,
     vnode: { patchFlag }
   } = instance
+  // 指向非晌应的原始内容
   const rawCurrentProps = toRaw(props)
+  // 解构选项
   const [options] = instance.propsOptions
+  // 默认有属性改变为false
   let hasAttrsChanged = false
-
   if (
     // always force full diff in dev
     // - #1942 if hmr is enabled with sfc component
@@ -262,24 +269,34 @@ export function updateProps(
       // Compiler-generated props & no keys change, just set the updated
       // the props.
       const propsToUpdate = instance.vnode.dynamicProps!
+      // 属笥更新列表
       for (let i = 0; i < propsToUpdate.length; i++) {
         let key = propsToUpdate[i]
         // skip if the prop key is a declared emit event listener
+        // 如果是emit监听的选项键跳过
         if (isEmitListener(instance.emitsOptions, key)) {
           continue
         }
         // PROPS flag guarantees rawProps to be non-null
+        // 获取值
         const value = rawProps![key]
+        // 如果选项为真
         if (options) {
           // attr / props separation was done on init and will be consistent
           // in this code path, so just check if attrs have it.
+          // 如果是私有的键
           if (hasOwn(attrs, key)) {
+            // 值不为属性值
             if (value !== attrs[key]) {
+              // 更新属性值
               attrs[key] = value
+              // 有属性改变指向true
               hasAttrsChanged = true
             }
           } else {
+            // 转换小写键
             const camelizedKey = camelize(key)
+            // 指向函数返回值
             props[camelizedKey] = resolvePropValue(
               options,
               rawCurrentProps,
@@ -290,13 +307,17 @@ export function updateProps(
             )
           }
         } else {
+          // 如果启用监容为真
           if (__COMPAT__) {
+            // 如果key有on与有后缀Native
             if (isOn(key) && key.endsWith('Native')) {
+              // 获取后缀
               key = key.slice(0, -6) // remove Native postfix
             } else if (shouldSkipAttr(key, instance)) {
               continue
             }
           }
+          // 如果值改变设置值
           if (value !== attrs[key]) {
             attrs[key] = value
             hasAttrsChanged = true
@@ -306,6 +327,7 @@ export function updateProps(
     }
   } else {
     // full props update.
+    // 如果埴充属性为真有属生改变设置为真
     if (setFullProps(instance, rawProps, props, attrs)) {
       hasAttrsChanged = true
     }
@@ -329,6 +351,7 @@ export function updateProps(
               // for kebab-case
               rawPrevProps[kebabKey!] !== undefined)
           ) {
+            // 解析属性的值
             props[key] = resolvePropValue(
               options,
               rawCurrentProps,
@@ -361,14 +384,16 @@ export function updateProps(
 
   // trigger updates for $attrs in case it's used in component slots
   if (hasAttrsChanged) {
+    //触发属性
     trigger(instance, TriggerOpTypes.SET, '$attrs')
   }
 
   if (__DEV__) {
+    // 验证属性
     validateProps(rawProps || {}, props, instance)
   }
 }
-
+// 设置完整的属性
 function setFullProps(
   instance: ComponentInternalInstance,
   rawProps: Data | null,
@@ -398,10 +423,12 @@ function setFullProps(
         }
       }
 
+      // 获取属性值
       const value = rawProps[key]
       // prop option names are camelized during normalization, so to support
       // kebab -> camel conversion here we need to camelize the key.
       let camelKey
+      // 如果选项为真，与有私有属笥
       if (options && hasOwn(options, (camelKey = camelize(key)))) {
         if (!needCastKeys || !needCastKeys.includes(camelKey)) {
           props[camelKey] = value
@@ -445,7 +472,7 @@ function setFullProps(
 
   return hasAttrsChanged
 }
-
+// 解析属性值
 function resolvePropValue(
   options: NormalizedProps,
   props: Data,
@@ -497,7 +524,7 @@ function resolvePropValue(
   }
   return value
 }
-
+// 标准化属性选项
 export function normalizePropsOptions(
   comp: ConcreteComponent,
   appContext: AppContext,
@@ -584,7 +611,7 @@ export function normalizePropsOptions(
   }
   return res
 }
-
+// 验证属性名称
 function validatePropName(key: string) {
   if (key[0] !== '$') {
     return true
@@ -596,15 +623,16 @@ function validatePropName(key: string) {
 
 // use function string name to check type constructors
 // so that it works across vms / iframes.
+// 获承类型
 function getType(ctor: Prop<any>): string {
   const match = ctor && ctor.toString().match(/^\s*(function|class) (\w+)/)
   return match ? match[2] : ctor === null ? 'null' : ''
 }
-
+// 判断是同一个类型
 function isSameType(a: Prop<any>, b: Prop<any>): boolean {
   return getType(a) === getType(b)
 }
-
+// 获取类型序列
 function getTypeIndex(
   type: Prop<any>,
   expectedTypes: PropType<any> | void | null | true
@@ -620,6 +648,7 @@ function getTypeIndex(
 /**
  * dev only
  */
+// 验证属性
 function validateProps(
   rawProps: Data,
   props: Data,
@@ -642,6 +671,7 @@ function validateProps(
 /**
  * dev only
  */
+// 验证属性
 function validateProp(
   name: string,
   value: unknown,
@@ -650,23 +680,31 @@ function validateProp(
 ) {
   const { type, required, validator, skipCheck } = prop
   // required!
+  // 如果验证为真，与是缺失，抛出错误消息
   if (required && isAbsent) {
     warn('Missing required prop: "' + name + '"')
     return
   }
   // missing but optional
+  // 如果值为空与验证为假返回
   if (value == null && !required) {
     return
   }
   // type check
+  // 如果类型不为空，与类型不为真，与
   if (type != null && type !== true && !skipCheck) {
     let isValid = false
+    // 判断 type类型
     const types = isArray(type) ? type : [type]
     const expectedTypes = []
     // value is valid as long as one of the specified types match
+    // 循环types
     for (let i = 0; i < types.length && !isValid; i++) {
+      // 解构验证与预期类型
       const { valid, expectedType } = assertType(value, types[i])
+      // 预期类型组中压入预期类型
       expectedTypes.push(expectedType || '')
+      // 是验证指向验证
       isValid = valid
     }
     if (!isValid) {
@@ -675,11 +713,12 @@ function validateProp(
     }
   }
   // custom validator
+  // 如果验证为真与验证值为假抛出错误
   if (validator && !validator(value)) {
     warn('Invalid prop: custom validator check failed for prop "' + name + '".')
   }
 }
-
+// 标记内容
 const isSimpleType = /*#__PURE__*/ makeMap(
   'String,Number,Boolean,Function,Symbol,BigInt'
 )
@@ -692,9 +731,12 @@ type AssertionResult = {
 /**
  * dev only
  */
+// 资源类型
 function assertType(value: unknown, type: PropConstructor): AssertionResult {
   let valid
+  // 获取类型
   const expectedType = getType(type)
+  // 如果是单个类型
   if (isSimpleType(expectedType)) {
     const t = typeof value
     valid = t === expectedType.toLowerCase()
@@ -711,6 +753,7 @@ function assertType(value: unknown, type: PropConstructor): AssertionResult {
   } else {
     valid = value instanceof type
   }
+  // 返回验证及 JS的里的类型
   return {
     valid,
     expectedType
@@ -720,11 +763,13 @@ function assertType(value: unknown, type: PropConstructor): AssertionResult {
 /**
  * dev only
  */
+// 获取验证类型的消息
 function getInvalidTypeMessage(
   name: string,
   value: unknown,
   expectedTypes: string[]
 ): string {
+  // 消息内容
   let message =
     `Invalid prop: type check failed for prop "${name}".` +
     ` Expected ${expectedTypes.map(capitalize).join(' | ')}`
@@ -745,12 +790,14 @@ function getInvalidTypeMessage(
   if (isExplicable(receivedType)) {
     message += `with value ${receivedValue}.`
   }
+  // 返回拼接完成的消息
   return message
 }
 
 /**
  * dev only
  */
+// 判断样式值
 function styleValue(value: unknown, type: string): string {
   if (type === 'String') {
     return `"${value}"`
@@ -764,6 +811,7 @@ function styleValue(value: unknown, type: string): string {
 /**
  * dev only
  */
+// 判断类型是字符串数字以及布尔值其中一个
 function isExplicable(type: string): boolean {
   const explicitTypes = ['string', 'number', 'boolean']
   return explicitTypes.some(elem => type.toLowerCase() === elem)
@@ -772,6 +820,7 @@ function isExplicable(type: string): boolean {
 /**
  * dev only
  */
+// 判断参数是否是布尔
 function isBoolean(...args: string[]): boolean {
   return args.some(elem => elem.toLowerCase() === 'boolean')
 }

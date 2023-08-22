@@ -5,11 +5,12 @@ import { currentApp } from './apiCreateApp'
 import { warn } from './warning'
 
 export interface InjectionKey<T> extends Symbol {}
-
+// 注入内容
 export function provide<T, K = InjectionKey<T> | string | number>(
   key: K,
   value: K extends InjectionKey<infer V> ? V : T
 ) {
+  // 如果当前上下文对象为假抛出警告
   if (!currentInstance) {
     if (__DEV__) {
       warn(`provide() can only be used inside setup().`)
@@ -42,6 +43,7 @@ export function inject<T>(
   defaultValue: T | (() => T),
   treatDefaultAsFactory: true
 ): T
+// 注入方法
 export function inject(
   key: InjectionKey<any> | string,
   defaultValue?: unknown,
@@ -49,6 +51,7 @@ export function inject(
 ) {
   // fallback to `currentRenderingInstance` so that this can be called in
   // a functional component
+  // 获取上下文对象
   const instance = currentInstance || currentRenderingInstance
 
   // also support looking up from app-level provides w/ `app.runWithContext()`
@@ -82,6 +85,7 @@ export function inject(
  * setup()). This is used by libraries that want to use `inject()` internally without triggering a warning to the end
  * user. One example is `useRoute()` in `vue-router`.
  */
+// 有注入上下文对象方法 返回上下文对象
 export function hasInjectionContext(): boolean {
   return !!(currentInstance || currentRenderingInstance || currentApp)
 }

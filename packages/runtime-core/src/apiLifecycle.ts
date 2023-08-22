@@ -13,14 +13,16 @@ import { DebuggerEvent, pauseTracking, resetTracking } from '@vue/reactivity'
 import { LifecycleHooks } from './enums'
 
 export { onActivated, onDeactivated } from './components/KeepAlive'
-
+// 注入钩子
 export function injectHook(
   type: LifecycleHooks,
   hook: Function & { __weh?: Function },
   target: ComponentInternalInstance | null = currentInstance,
   prepend: boolean = false
 ): Function | undefined {
+  // 如果目标为真
   if (target) {
+    // 获取钩子
     const hooks = target[type] || (target[type] = [])
     // cache the error handling wrapper for injected hooks so the same hook
     // can be properly deduped by the scheduler. "__weh" stands for "with error
@@ -33,6 +35,7 @@ export function injectHook(
         }
         // disable tracking inside all lifecycle hooks
         // since they can potentially be called inside effects.
+        // 暂停任务
         pauseTracking()
         // Set currentInstance during hook invocation.
         // This assumes the hook does not synchronously trigger other hooks, which
@@ -40,9 +43,12 @@ export function injectHook(
         setCurrentInstance(target)
         const res = callWithAsyncErrorHandling(hook, target, type, args)
         unsetCurrentInstance()
+        // 重启任务
         resetTracking()
+        // 返回内容
         return res
       })
+    // 钩子弹栈与压栈
     if (prepend) {
       hooks.unshift(wrappedHook)
     } else {
@@ -50,6 +56,7 @@ export function injectHook(
     }
     return wrappedHook
   } else if (__DEV__) {
+    // 到手动键
     const apiName = toHandlerKey(ErrorTypeStrings[type].replace(/ hook$/, ''))
     warn(
       `${apiName} is called when there is no active component instance to be ` +
@@ -79,9 +86,10 @@ export const onUnmounted = createHook(LifecycleHooks.UNMOUNTED)
 export const onServerPrefetch = createHook(LifecycleHooks.SERVER_PREFETCH)
 
 export type DebuggerHook = (e: DebuggerEvent) => void
+// 渲染目标
 export const onRenderTriggered = createHook<DebuggerHook>(
   LifecycleHooks.RENDER_TRIGGERED
-)
+) // 渲染任务
 export const onRenderTracked = createHook<DebuggerHook>(
   LifecycleHooks.RENDER_TRACKED
 )
@@ -91,7 +99,7 @@ export type ErrorCapturedHook<TError = unknown> = (
   instance: ComponentPublicInstance | null,
   info: string
 ) => boolean | void
-
+// 捕获错误钩子
 export function onErrorCaptured<TError = Error>(
   hook: ErrorCapturedHook<TError>,
   target: ComponentInternalInstance | null = currentInstance

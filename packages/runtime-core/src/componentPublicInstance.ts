@@ -246,6 +246,7 @@ export type PublicPropertiesMap = Record<
  * they exist in the internal parent chain. For code that relies on traversing
  * public $parent chains, skip functional ones and go to the parent instead.
  */
+// 获取静态的上下文对象
 const getPublicInstance = (
   i: ComponentInternalInstance | null
 ): ComponentPublicInstance | ComponentInternalInstance['exposed'] | null => {
@@ -253,7 +254,7 @@ const getPublicInstance = (
   if (isStatefulComponent(i)) return getExposeProxy(i) || i.proxy
   return getPublicInstance(i.parent)
 }
-
+// 静态属性图
 export const publicPropertiesMap: PublicPropertiesMap =
   // Move PURE marker to new line to workaround compiler discarding it
   // due to type annotation
@@ -275,6 +276,7 @@ export const publicPropertiesMap: PublicPropertiesMap =
   } as PublicPropertiesMap)
 
 if (__COMPAT__) {
+  // 安装兼容上下文对象的属笥
   installCompatInstanceProperties(publicPropertiesMap)
 }
 
@@ -290,12 +292,12 @@ export interface ComponentRenderContext {
   [key: string]: any
   _: ComponentInternalInstance
 }
-
+// 是保留前缀
 export const isReservedPrefix = (key: string) => key === '_' || key === '$'
-
+// 有安装绑定
 const hasSetupBinding = (state: Data, key: string) =>
   state !== EMPTY_OBJ && !state.__isScriptSetup && hasOwn(state, key)
-
+// 上下文对象代理操作
 export const PublicInstanceProxyHandlers: ProxyHandler<any> = {
   get({ _: instance }: ComponentRenderContext, key: string) {
     const { ctx, setupState, data, props, accessCache, type, appContext } =
@@ -498,7 +500,7 @@ if (__DEV__ && !__TEST__) {
     return Reflect.ownKeys(target)
   }
 }
-
+// 运行勾子的静 态上下文代理操作
 export const RuntimeCompiledPublicInstanceProxyHandlers = /*#__PURE__*/ extend(
   {},
   PublicInstanceProxyHandlers,
@@ -528,6 +530,7 @@ export const RuntimeCompiledPublicInstanceProxyHandlers = /*#__PURE__*/ extend(
 // In dev mode, the proxy target exposes the same properties as seen on `this`
 // for easier console inspection. In prod mode it will be an empty object so
 // these properties definitions can be skipped.
+// 创建开发环境的渲染上下文对象
 export function createDevRenderContext(instance: ComponentInternalInstance) {
   const target: Record<string, any> = {}
 
@@ -574,6 +577,7 @@ export function exposePropsOnRenderContext(
 }
 
 // dev only
+// 暴出安装的状态的渲染上下文对象
 export function exposeSetupStateOnRenderContext(
   instance: ComponentInternalInstance
 ) {

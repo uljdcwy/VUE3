@@ -33,16 +33,17 @@ import {
  * fallthrough can be suppressed.
  */
 let accessedAttrs: boolean = false
-
+// 标记已访问
 export function markAttrsAccessed() {
   accessedAttrs = true
 }
 
 type SetRootFn = ((root: VNode) => void) | undefined
-
+// 渲染组件根
 export function renderComponentRoot(
   instance: ComponentInternalInstance
 ): VNode {
+  // 在上下文对象中解构多个属性
   const {
     type: Component,
     vnode,
@@ -63,6 +64,7 @@ export function renderComponentRoot(
 
   let result
   let fallthroughAttrs
+  // 设置当前的上下文对象
   const prev = setCurrentRenderingInstance(instance)
   if (__DEV__) {
     accessedAttrs = false
@@ -248,10 +250,15 @@ export function renderComponentRoot(
  * template into a fragment root, but we need to locate the single element
  * root for attrs and scope id processing.
  */
+// 获取子元素的根
 const getChildRoot = (vnode: VNode): [VNode, SetRootFn] => {
+  // 指向原始节点
   const rawChildren = vnode.children as VNodeArrayChildren
+  // 活动的子元素
   const dynamicChildren = vnode.dynamicChildren
+  // 获取子根元素
   const childRoot = filterSingleRoot(rawChildren)
+  // 如果子根元素为假返回数组
   if (!childRoot) {
     return [vnode, undefined]
   }
@@ -267,9 +274,10 @@ const getChildRoot = (vnode: VNode): [VNode, SetRootFn] => {
       }
     }
   }
+  // 返回规格化的节点与设置方法
   return [normalizeVNode(childRoot), setRoot]
 }
-
+// 过虑简单的根并返回
 export function filterSingleRoot(
   children: VNodeArrayChildren
 ): VNode | undefined {
@@ -292,7 +300,7 @@ export function filterSingleRoot(
   }
   return singleRoot
 }
-
+// 获取属性的类样式与事件的键与值
 const getFunctionalFallthrough = (attrs: Data): Data | undefined => {
   let res: Data | undefined
   for (const key in attrs) {
@@ -302,7 +310,7 @@ const getFunctionalFallthrough = (attrs: Data): Data | undefined => {
   }
   return res
 }
-
+// 过虑模块监听
 const filterModelListeners = (attrs: Data, props: NormalizedProps): Data => {
   const res: Data = {}
   for (const key in attrs) {
@@ -312,14 +320,14 @@ const filterModelListeners = (attrs: Data, props: NormalizedProps): Data => {
   }
   return res
 }
-
+// 判断是元素根
 const isElementRoot = (vnode: VNode) => {
   return (
     vnode.shapeFlag & (ShapeFlags.COMPONENT | ShapeFlags.ELEMENT) ||
     vnode.type === Comment // potential v-if branch switch
   )
 }
-
+// 应该更新组件 判断是否应该更新组件
 export function shouldUpdateComponent(
   prevVNode: VNode,
   nextVNode: VNode,
@@ -387,7 +395,7 @@ export function shouldUpdateComponent(
 
   return false
 }
-
+// 有属性改变发生 返回布尔值
 function hasPropsChanged(
   prevProps: Data,
   nextProps: Data,
@@ -408,7 +416,7 @@ function hasPropsChanged(
   }
   return false
 }
-
+// 更新HOC host元素
 export function updateHOCHostEl(
   { vnode, parent }: ComponentInternalInstance,
   el: typeof vnode.el // HostNode

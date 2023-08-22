@@ -389,7 +389,7 @@ export function createHydrationFunctions(
           if (__DEV__ && !hasWarned) {
             warn(
               `Hydration children mismatch in <${vnode.type as string}>: ` +
-                `server rendered element contains more child nodes than client vdom.`
+                `server rent vdom.`
             )
             hasWarned = true
           }

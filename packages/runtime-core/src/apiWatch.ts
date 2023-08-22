@@ -80,13 +80,14 @@ export interface WatchOptions<Immediate = boolean> extends WatchOptionsBase {
 export type WatchStopHandle = () => void
 
 // Simple effect.
+// 监听副作用函数
 export function watchEffect(
   effect: WatchEffect,
   options?: WatchOptionsBase
 ): WatchStopHandle {
   return doWatch(effect, null, options)
 }
-
+// 监听发送的副作用函数
 export function watchPostEffect(
   effect: WatchEffect,
   options?: DebuggerOptions
@@ -97,7 +98,7 @@ export function watchPostEffect(
     __DEV__ ? extend({}, options as any, { flush: 'post' }) : { flush: 'post' }
   )
 }
-
+// 监听异步的副作用函数
 export function watchSyncEffect(
   effect: WatchEffect,
   options?: DebuggerOptions
@@ -168,7 +169,7 @@ export function watch<T = any, Immediate extends Readonly<boolean> = false>(
   }
   return doWatch(source as any, cb, options)
 }
-
+// 执行监听
 function doWatch(
   source: WatchSource | WatchSource[] | WatchEffect | object,
   cb: WatchCallback | null,
@@ -197,15 +198,16 @@ function doWatch(
         `a reactive object, or an array of these types.`
     )
   }
-
+  // 获取上下文对象
   const instance =
     getCurrentScope() === currentInstance?.scope ? currentInstance : null
   // const instance = currentInstance
   let getter: () => any
   let forceTrigger = false
   let isMultiSource = false
-
+  // 如果资源是ref
   if (isRef(source)) {
+    // 指向方法
     getter = () => source.value
     forceTrigger = isShallow(source)
   } else if (isReactive(source)) {
@@ -369,6 +371,7 @@ function doWatch(
   }
 
   // initial run
+  // 如果回调为真
   if (cb) {
     if (immediate) {
       job()
@@ -376,6 +379,7 @@ function doWatch(
       oldValue = effect.run()
     }
   } else if (flush === 'post') {
+    // 队列函数
     queuePostRenderEffect(
       effect.run.bind(effect),
       instance && instance.suspense
@@ -392,10 +396,12 @@ function doWatch(
   }
 
   if (__SSR__ && ssrCleanup) ssrCleanup.push(unwatch)
+  //返回解除监听
   return unwatch
 }
 
 // this.$watch
+// 上下文对象监听
 export function instanceWatch(
   this: ComponentInternalInstance,
   source: string | Function,
@@ -425,7 +431,7 @@ export function instanceWatch(
   }
   return res
 }
-
+// 创建路径获取
 export function createPathGetter(ctx: any, path: string) {
   const segments = path.split('.')
   return () => {
@@ -435,7 +441,7 @@ export function createPathGetter(ctx: any, path: string) {
     }
     return cur
   }
-}
+} // 遍历方法
 
 export function traverse(value: unknown, seen?: Set<unknown>) {
   if (!isObject(value) || (value as any)[ReactiveFlags.SKIP]) {

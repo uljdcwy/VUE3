@@ -33,6 +33,7 @@ import { Ref, ref } from '@vue/reactivity'
 import { watch } from './apiWatch'
 
 // dev only
+// 输入警告
 const warnRuntimeUsage = (method: string) =>
   warn(
     `${method}() is a compiler-hint helper that is only usable inside ` +
@@ -86,6 +87,7 @@ export function defineProps<TypeProps>(): DefineProps<
   BooleanKey<TypeProps>
 >
 // implementation
+// 默认属性方法，如果是开发环境输入警告，返回 null
 export function defineProps() {
   if (__DEV__) {
     warnRuntimeUsage(`defineProps`)
@@ -139,6 +141,7 @@ export function defineEmits<
   T extends ((...args: any[]) => any) | Record<string, any[]>
 >(): T extends (...args: any[]) => any ? T : ShortEmits<T>
 // implementation
+// 默认 Emits
 export function defineEmits() {
   if (__DEV__) {
     warnRuntimeUsage(`defineEmits`)
@@ -168,6 +171,7 @@ type ShortEmits<T extends Record<string, any>> = UnionToIntersection<
  *
  * @see {@link https://vuejs.org/api/sfc-script-setup.html#defineexpose}
  */
+// 默认expose
 export function defineExpose<
   Exposed extends Record<string, any> = Record<string, any>
 >(exposed?: Exposed) {
@@ -183,6 +187,7 @@ export function defineExpose<
  *
  * @see {@link https://vuejs.org/api/sfc-script-setup.html#defineoptions}
  */
+// 默认选项
 export function defineOptions<
   RawBindings = {},
   D = {},
@@ -325,6 +330,7 @@ type PropsWithDefaults<
  *
  * @see {@link https://vuejs.org/guide/typescript/composition-api.html#typing-component-props}
  */
+// 带默认值
 export function withDefaults<
   T,
   BKeys extends keyof T,
@@ -338,11 +344,11 @@ export function withDefaults<
   }
   return null as any
 }
-
+// 使用 slot
 export function useSlots(): SetupContext['slots'] {
   return getContext().slots
 }
-
+// 使用属性
 export function useAttrs(): SetupContext['attrs'] {
   return getContext().attrs
 }
@@ -352,17 +358,20 @@ export function useModel<T extends Record<string, any>, K extends keyof T>(
   name: K,
   options?: { local?: boolean }
 ): Ref<T[K]>
+// 使用 绑定
 export function useModel(
   props: Record<string, any>,
   name: string,
   options?: { local?: boolean }
 ): Ref {
+  // 获取当前上下文对象
   const i = getCurrentInstance()!
+  // 返回空的 ref 对象
   if (__DEV__ && !i) {
     warn(`useModel() called without active instance.`)
     return ref() as any
   }
-
+  // 返回空的 ref 对象
   if (__DEV__ && !(i.propsOptions[0] as NormalizedProps)[name]) {
     warn(`useModel() called with prop "${name}" which is not declared.`)
     return ref() as any
@@ -370,20 +379,21 @@ export function useModel(
 
   if (options && options.local) {
     const proxy = ref<any>(props[name])
-
+    // 监听属性属性值发生变化时改变代理的值
     watch(
       () => props[name],
       v => (proxy.value = v)
     )
-
+    // 监听代理的变化，如果发生变化时，发送更新事件
     watch(proxy, value => {
       if (value !== props[name]) {
         i.emit(`update:${name}`, value)
       }
     })
-
+    // 返回代理方法
     return proxy
   } else {
+    // 获取get与 set方法在设置时触发 emit 更新
     return {
       __v_isRef: true,
       get value() {
@@ -395,7 +405,7 @@ export function useModel(
     } as any
   }
 }
-
+// 获取当前组件的上下文对象
 function getContext(): SetupContext {
   const i = getCurrentInstance()!
   if (__DEV__ && !i) {
@@ -407,6 +417,7 @@ function getContext(): SetupContext {
 /**
  * @internal
  */
+// 规范化的属性与事件
 export function normalizePropsOrEmits(
   props: ComponentPropsOptions | EmitsOptions
 ) {
@@ -423,6 +434,7 @@ export function normalizePropsOrEmits(
  * only.
  * @internal
  */
+// 合并默认属性
 export function mergeDefaults(
   raw: ComponentPropsOptions,
   defaults: Record<string, any>
@@ -454,6 +466,7 @@ export function mergeDefaults(
  * Imported by compiled code only.
  * @internal
  */
+// 合并models
 export function mergeModels(
   a: ComponentPropsOptions | EmitsOptions,
   b: ComponentPropsOptions | EmitsOptions
@@ -468,6 +481,7 @@ export function mergeModels(
  * defineProps().
  * @internal
  */
+// 创建属性的代理
 export function createPropsRestProxy(
   props: any,
   excludedKeys: string[]
@@ -502,6 +516,7 @@ export function createPropsRestProxy(
  * ```
  * @internal
  */
+// 使用异步上下文
 export function withAsyncContext(getAwaitable: () => any) {
   const ctx = getCurrentInstance()!
   if (__DEV__ && !ctx) {

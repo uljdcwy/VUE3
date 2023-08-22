@@ -593,7 +593,7 @@ const enum OptionTypes {
   METHODS = 'Methods',
   INJECT = 'Inject'
 }
-
+// 查看缓存是否重复
 function createDuplicateChecker() {
   const cache = Object.create(null)
   return (type: OptionTypes, key: string) => {
@@ -606,8 +606,9 @@ function createDuplicateChecker() {
 }
 
 export let shouldCacheAccess = true
-
+// 应用选项
 export function applyOptions(instance: ComponentInternalInstance) {
+  // 询问合并选项
   const options = resolveMergedOptions(instance)
   const publicThis = instance.proxy! as any
   const ctx = instance.ctx
@@ -618,6 +619,7 @@ export function applyOptions(instance: ComponentInternalInstance) {
   // call beforeCreate first before accessing other options since
   // the hook may mutate resolved options (#2791)
   if (options.beforeCreate) {
+    // 回调勾子
     callHook(options.beforeCreate, instance, LifecycleHooks.BEFORE_CREATE)
   }
 
@@ -654,13 +656,14 @@ export function applyOptions(instance: ComponentInternalInstance) {
     directives,
     filters
   } = options
-
+  // 如果是开发环境创建检查
   const checkDuplicateProperties = __DEV__ ? createDuplicateChecker() : null
-
+  // 如果是开发环境
   if (__DEV__) {
     const [propsOptions] = instance.propsOptions
     if (propsOptions) {
       for (const key in propsOptions) {
+        // 检查属性
         checkDuplicateProperties!(OptionTypes.PROPS, key)
       }
     }
@@ -673,14 +676,16 @@ export function applyOptions(instance: ComponentInternalInstance) {
   // - data (deferred since it relies on `this` access)
   // - computed
   // - watch (deferred since it relies on `this` access)
-
+  // 如果有注入选项
   if (injectOptions) {
+    // 转换注入选项
     resolveInjections(injectOptions, ctx, checkDuplicateProperties)
   }
-
+  // 如果方法为真
   if (methods) {
     for (const key in methods) {
       const methodHandler = (methods as MethodOptions)[key]
+      // 如果是函数
       if (isFunction(methodHandler)) {
         // In dev mode, we use the `createRenderContext` function to define
         // methods to the proxy target, and those are read-only but
@@ -693,6 +698,7 @@ export function applyOptions(instance: ComponentInternalInstance) {
             writable: true
           })
         } else {
+          // 绑定方法
           ctx[key] = methodHandler.bind(publicThis)
         }
         if (__DEV__) {
@@ -706,7 +712,7 @@ export function applyOptions(instance: ComponentInternalInstance) {
       }
     }
   }
-
+  // 如果数据选项为真
   if (dataOptions) {
     if (__DEV__ && !isFunction(dataOptions)) {
       warn(
@@ -714,6 +720,7 @@ export function applyOptions(instance: ComponentInternalInstance) {
           `Plain object usage is no longer supported.`
       )
     }
+    // 函数选项方法执行传入this指向
     const data = dataOptions.call(publicThis, publicThis)
     if (__DEV__ && isPromise(data)) {
       warn(
@@ -722,9 +729,11 @@ export function applyOptions(instance: ComponentInternalInstance) {
           `async setup() + <Suspense>.`
       )
     }
+    // 如果data不是对象
     if (!isObject(data)) {
       __DEV__ && warn(`data() should return an object.`)
     } else {
+      // 转换数据为晌应
       instance.data = reactive(data)
       if (__DEV__) {
         for (const key in data) {
@@ -745,10 +754,12 @@ export function applyOptions(instance: ComponentInternalInstance) {
 
   // state initialization complete at this point - start caching access
   shouldCacheAccess = true
-
+  // 如果计逄选项为真
   if (computedOptions) {
     for (const key in computedOptions) {
+      // 获取先项
       const opt = (computedOptions as ComputedOptions)[key]
+      // get指向
       const get = isFunction(opt)
         ? opt.bind(publicThis, publicThis)
         : isFunction(opt.get)
@@ -757,6 +768,7 @@ export function applyOptions(instance: ComponentInternalInstance) {
       if (__DEV__ && get === NOOP) {
         warn(`Computed property "${key}" has no getter.`)
       }
+      // set指向
       const set =
         !isFunction(opt) && isFunction(opt.set)
           ? opt.set.bind(publicThis)
@@ -767,10 +779,12 @@ export function applyOptions(instance: ComponentInternalInstance) {
               )
             }
           : NOOP
+      // 晌应get与set
       const c = computed({
         get,
         set
       })
+      // 观查
       Object.defineProperty(ctx, key, {
         enumerable: true,
         configurable: true,
@@ -778,30 +792,34 @@ export function applyOptions(instance: ComponentInternalInstance) {
         set: v => (c.value = v)
       })
       if (__DEV__) {
+        // 检查属性
         checkDuplicateProperties!(OptionTypes.COMPUTED, key)
       }
     }
   }
-
+  // 如果监听选项 真
   if (watchOptions) {
     for (const key in watchOptions) {
+      // 创建监听选项
       createWatcher(watchOptions[key], ctx, publicThis, key)
     }
   }
-
+  // 接收选项为真时
   if (provideOptions) {
+    //
     const provides = isFunction(provideOptions)
       ? provideOptions.call(publicThis)
       : provideOptions
+    // 反射数据
     Reflect.ownKeys(provides).forEach(key => {
       provide(key, provides[key])
     })
   }
-
+  // 搪行勾子
   if (created) {
     callHook(created, instance, LifecycleHooks.CREATED)
   }
-
+  // 注册勾子
   function registerLifecycleHook(
     register: Function,
     hook?: Function | Function[]
@@ -825,7 +843,7 @@ export function applyOptions(instance: ComponentInternalInstance) {
   registerLifecycleHook(onBeforeUnmount, beforeUnmount)
   registerLifecycleHook(onUnmounted, unmounted)
   registerLifecycleHook(onServerPrefetch, serverPrefetch)
-
+  // 如果监容启用 注册指定勾子
   if (__COMPAT__) {
     if (
       beforeDestroy &&
@@ -840,9 +858,10 @@ export function applyOptions(instance: ComponentInternalInstance) {
       registerLifecycleHook(onUnmounted, destroyed)
     }
   }
-
+  // 如果是数据
   if (isArray(expose)) {
     if (expose.length) {
+      // 循环并观查
       const exposed = instance.exposed || (instance.exposed = {})
       expose.forEach(key => {
         Object.defineProperty(exposed, key, {
@@ -857,6 +876,7 @@ export function applyOptions(instance: ComponentInternalInstance) {
 
   // options that are handled when creating the instance but also need to be
   // applied from mixins
+  // 如果渲染为真
   if (render && instance.render === NOOP) {
     instance.render = render as InternalRenderFunction
   }
@@ -872,34 +892,41 @@ export function applyOptions(instance: ComponentInternalInstance) {
     filters &&
     isCompatEnabled(DeprecationTypes.FILTERS, instance)
   ) {
+    // 指向过虑器
     instance.filters = filters
   }
 }
-
+// 承诺中的报错选项
 export function resolveInjections(
   injectOptions: ComponentInjectOptions,
   ctx: any,
   checkDuplicateProperties = NOOP as any
 ) {
+  // 如果是数组
   if (isArray(injectOptions)) {
     injectOptions = normalizeInject(injectOptions)!
   }
+  // 循环选项
   for (const key in injectOptions) {
     const opt = injectOptions[key]
     let injected: unknown
+    // 如果选项是对象
     if (isObject(opt)) {
       if ('default' in opt) {
+        // 执行承诺函数的错误
         injected = inject(
           opt.from || key,
           opt.default,
           true /* treat default function as factory */
         )
       } else {
+        //
         injected = inject(opt.from || key)
       }
     } else {
       injected = inject(opt)
     }
+    // 如果是ref观查
     if (isRef(injected)) {
       // unwrap injected refs (ref #4196)
       Object.defineProperty(ctx, key, {
@@ -916,7 +943,7 @@ export function resolveInjections(
     }
   }
 }
-
+// 勾子回调
 function callHook(
   hook: Function,
   instance: ComponentInternalInstance,
@@ -930,7 +957,7 @@ function callHook(
     type
   )
 }
-
+// 创建兼听
 export function createWatcher(
   raw: ComponentWatchOptionItem,
   ctx: Data,
@@ -972,6 +999,7 @@ export function createWatcher(
  * This is done only once per-component since the merging does not involve
  * instances.
  */
+// 承诺成功合并选项
 export function resolveMergedOptions(
   instance: ComponentInternalInstance
 ): MergedComponentOptions {
@@ -1008,12 +1036,13 @@ export function resolveMergedOptions(
     }
     mergeOptions(resolved, base, optionMergeStrategies)
   }
+  // 如果是对象缓存
   if (isObject(base)) {
     cache.set(base, resolved)
   }
   return resolved
 }
-
+// 合并选项
 export function mergeOptions(
   to: any,
   from: any,
@@ -1085,7 +1114,7 @@ export const internalOptionMergeStrats: Record<string, Function> = {
 if (__COMPAT__) {
   internalOptionMergeStrats.filters = mergeObjectOptions
 }
-
+// 合并数据方法
 function mergeDataFn(to: any, from: any) {
   if (!from) {
     return to
@@ -1104,7 +1133,7 @@ function mergeDataFn(to: any, from: any) {
     )
   }
 }
-
+// 合并承诺报错
 function mergeInject(
   to: ComponentInjectOptions | undefined,
   from: ComponentInjectOptions
@@ -1124,15 +1153,15 @@ function normalizeInject(
   }
   return raw
 }
-
+// 合并数组
 function mergeAsArray<T = Function>(to: T[] | T | undefined, from: T | T[]) {
   return to ? [...new Set([].concat(to as any, from as any))] : from
 }
-
+// 合并对象选项
 function mergeObjectOptions(to: Object | undefined, from: Object | undefined) {
   return to ? extend(Object.create(null), to, from) : from
 }
-
+// 合并发送属性选项
 function mergeEmitsOrPropsOptions(
   to: EmitsOptions | undefined,
   from: EmitsOptions | undefined
@@ -1158,7 +1187,7 @@ function mergeEmitsOrPropsOptions(
     return from
   }
 }
-
+// 合并兼听选项
 function mergeWatchOptions(
   to: ComponentWatchOptions | undefined,
   from: ComponentWatchOptions | undefined

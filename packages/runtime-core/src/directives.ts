@@ -62,7 +62,7 @@ export type Directive<T = any, V = any> =
   | FunctionDirective<T, V>
 
 export type DirectiveModifiers = Record<string, boolean>
-
+// 验证指令名称
 export function validateDirectiveName(name: string) {
   if (isBuiltInDirective(name)) {
     warn('Do not use built-in directive ids as custom directive id: ' + name)
@@ -80,6 +80,7 @@ export type DirectiveArguments = Array<
 /**
  * Adds directives to a VNode.
  */
+// 有指令
 export function withDirectives<T extends VNode>(
   vnode: T,
   directives: DirectiveArguments
@@ -89,6 +90,7 @@ export function withDirectives<T extends VNode>(
     __DEV__ && warn(`withDirectives can only be used inside render functions.`)
     return vnode
   }
+  // 获取上下文对象
   const instance =
     (getExposeProxy(internalInstance) as ComponentPublicInstance) ||
     internalInstance.proxy
@@ -96,15 +98,18 @@ export function withDirectives<T extends VNode>(
   for (let i = 0; i < directives.length; i++) {
     let [dir, value, arg, modifiers = EMPTY_OBJ] = directives[i]
     if (dir) {
+      // 指令是方法时
       if (isFunction(dir)) {
         dir = {
           mounted: dir,
           updated: dir
         } as ObjectDirective
       }
+      // 指令深度为真时转换指令
       if (dir.deep) {
         traverse(value)
       }
+      // 绑定中压入指令
       bindings.push({
         dir,
         instance,
@@ -117,7 +122,7 @@ export function withDirectives<T extends VNode>(
   }
   return vnode
 }
-
+// 调用指令勾子
 export function invokeDirectiveHook(
   vnode: VNode,
   prevVNode: VNode | null,
@@ -133,18 +138,22 @@ export function invokeDirectiveHook(
     }
     let hook = binding.dir[name] as DirectiveHook | DirectiveHook[] | undefined
     if (__COMPAT__ && !hook) {
+      // 兼容提令勾子
       hook = mapCompatDirectiveHook(name, binding.dir, instance)
     }
     if (hook) {
       // disable tracking inside all lifecycle hooks
       // since they can potentially be called inside effects.
+      // 暂停任务
       pauseTracking()
+      // 执行异步错误
       callWithAsyncErrorHandling(hook, instance, ErrorCodes.DIRECTIVE_HOOK, [
         vnode.el,
         binding,
         vnode,
         prevVNode
       ])
+      // 重新开始任务
       resetTracking()
     }
   }

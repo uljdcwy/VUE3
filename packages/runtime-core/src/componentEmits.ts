@@ -69,7 +69,7 @@ export type EmitFn<
           : (event: key, ...args: any[]) => void
       }[Event]
     >
-
+// emit方法定义
 export function emit(
   instance: ComponentInternalInstance,
   event: string,
@@ -191,7 +191,7 @@ export function emit(
     return compatInstanceEmit(instance, event, args)
   }
 }
-
+// 格式化emit选项
 export function normalizeEmitsOptions(
   comp: ConcreteComponent,
   appContext: AppContext,
@@ -243,12 +243,14 @@ export function normalizeEmitsOptions(
   if (isObject(comp)) {
     cache.set(comp, normalized)
   }
+  // 返回格式化
   return normalized
 }
 
 // Check if an incoming prop key is a declared emit event listener.
 // e.g. With `emits: { click: null }`, props named `onClick` and `onclick` are
 // both considered matched listeners.
+// 判断是emit监听
 export function isEmitListener(
   options: ObjectEmitsOptions | null,
   key: string

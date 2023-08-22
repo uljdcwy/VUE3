@@ -274,6 +274,7 @@ export function defineComponent<
 >
 
 // implementation, close to no-op
+// 定义组件，返回选项是否是函数返回选项或者扩展对象
 export function defineComponent(
   options: unknown,
   extraOptions?: ComponentOptions
