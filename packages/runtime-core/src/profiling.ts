@@ -4,12 +4,13 @@ import { devtoolsPerfEnd, devtoolsPerfStart } from './devtools'
 
 let supported: boolean
 let perf: Performance
-
+// 开始测量
 export function startMeasure(
   instance: ComponentInternalInstance,
   type: string
 ) {
   if (instance.appContext.config.performance && isSupported()) {
+    // 性能标记
     perf.mark(`vue-${type}-${instance.uid}`)
   }
 
@@ -17,17 +18,20 @@ export function startMeasure(
     devtoolsPerfStart(instance, type, isSupported() ? perf.now() : Date.now())
   }
 }
-
+// 结束测量
 export function endMeasure(instance: ComponentInternalInstance, type: string) {
   if (instance.appContext.config.performance && isSupported()) {
     const startTag = `vue-${type}-${instance.uid}`
     const endTag = startTag + `:end`
+    // 性能标记
     perf.mark(endTag)
+    // 性能测试
     perf.measure(
       `<${formatComponentName(instance, instance.type)}> ${type}`,
       startTag,
       endTag
     )
+    // 性能清除标记
     perf.clearMarks(startTag)
     perf.clearMarks(endTag)
   }
@@ -36,7 +40,7 @@ export function endMeasure(instance: ComponentInternalInstance, type: string) {
     devtoolsPerfEnd(instance, type, isSupported() ? perf.now() : Date.now())
   }
 }
-
+// 判断是否支持
 function isSupported() {
   if (supported !== undefined) {
     return supported

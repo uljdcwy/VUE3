@@ -56,21 +56,22 @@ export interface NodeOp {
 
 let nodeId: number = 0
 let recordedNodeOps: NodeOp[] = []
-
+// 导出日志节点选项
 export function logNodeOp(op: NodeOp) {
+  // 记录节点选项压入选项
   recordedNodeOps.push(op)
 }
-
+// 重置选项
 export function resetOps() {
   recordedNodeOps = []
 }
-
+// 下载选项
 export function dumpOps(): NodeOp[] {
   const ops = recordedNodeOps.slice()
   resetOps()
   return ops
 }
-
+// 创建元素
 function createElement(tag: string): TestElement {
   const node: TestElement = {
     id: nodeId++,
@@ -81,17 +82,18 @@ function createElement(tag: string): TestElement {
     parentNode: null,
     eventListeners: null
   }
+  // 日志节点选项
   logNodeOp({
     type: NodeOpTypes.CREATE,
     nodeType: TestNodeTypes.ELEMENT,
     targetNode: node,
     tag
   })
-  // avoid test nodes from being observed
+  // avoid test nodes from being observed 标记 RAW节点
   markRaw(node)
   return node
 }
-
+// 创建文本
 function createText(text: string): TestText {
   const node: TestText = {
     id: nodeId++,
@@ -99,6 +101,7 @@ function createText(text: string): TestText {
     text,
     parentNode: null
   }
+  // 日志
   logNodeOp({
     type: NodeOpTypes.CREATE,
     nodeType: TestNodeTypes.TEXT,
@@ -109,7 +112,7 @@ function createText(text: string): TestText {
   markRaw(node)
   return node
 }
-
+// 创建注释节点
 function createComment(text: string): TestComment {
   const node: TestComment = {
     id: nodeId++,
@@ -127,7 +130,7 @@ function createComment(text: string): TestComment {
   markRaw(node)
   return node
 }
-
+// 设置文本
 function setText(node: TestText, text: string) {
   logNodeOp({
     type: NodeOpTypes.SET_TEXT,
@@ -136,7 +139,7 @@ function setText(node: TestText, text: string) {
   })
   node.text = text
 }
-
+// 插入
 function insert(child: TestNode, parent: TestElement, ref?: TestNode | null) {
   let refIndex
   if (ref) {
@@ -187,7 +190,7 @@ function remove(child: TestNode, logOp = true) {
     child.parentNode = null
   }
 }
-
+// 设置元素文本
 function setElementText(el: TestElement, text: string) {
   logNodeOp({
     type: NodeOpTypes.SET_ELEMENT_TEXT,
@@ -210,11 +213,11 @@ function setElementText(el: TestElement, text: string) {
     ]
   }
 }
-
+// 获取上级节点
 function parentNode(node: TestNode): TestElement | null {
   return node.parentNode
 }
-
+// 获取下一个同级节点
 function nextSibling(node: TestNode): TestNode | null {
   const parent = node.parentNode
   if (!parent) {
@@ -223,15 +226,15 @@ function nextSibling(node: TestNode): TestNode | null {
   const i = parent.children.indexOf(node)
   return parent.children[i + 1] || null
 }
-
+// 查询方法
 function querySelector(): never {
   throw new Error('querySelector not supported in test renderer.')
 }
-
+// 设置作用域ID
 function setScopeId(el: TestElement, id: string) {
   el.props[id] = ''
 }
-
+// 导出方法
 export const nodeOps = {
   insert,
   remove,

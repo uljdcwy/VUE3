@@ -1,6 +1,6 @@
 import { isArray } from '@vue/shared'
 import { TestElement } from './nodeOps'
-
+// 触发事件
 export function triggerEvent(
   el: TestElement,
   event: string,

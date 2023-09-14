@@ -59,7 +59,7 @@ export const ErrorTypeStrings: Record<LifecycleHooks | ErrorCodes, string> = {
 }
 
 export type ErrorTypes = LifecycleHooks | ErrorCodes
-
+// 勾子方法，抛出错误
 export function callWithErrorHandling(
   fn: Function,
   instance: ComponentInternalInstance | null,
@@ -74,7 +74,7 @@ export function callWithErrorHandling(
   }
   return res
 }
-
+// 异步方法抛出错误
 export function callWithAsyncErrorHandling(
   fn: Function | Function[],
   instance: ComponentInternalInstance | null,
@@ -97,7 +97,7 @@ export function callWithAsyncErrorHandling(
   }
   return values
 }
-
+// 手动抛出错误
 export function handleError(
   err: unknown,
   instance: ComponentInternalInstance | null,
@@ -138,7 +138,7 @@ export function handleError(
   }
   logError(err, type, contextVNode, throwInDev)
 }
-
+// 错误日志
 function logError(
   err: unknown,
   type: ErrorTypes,

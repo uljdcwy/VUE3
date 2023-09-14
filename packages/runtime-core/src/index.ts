@@ -374,6 +374,7 @@ const _compatUtils = {
 /**
  * @internal only exposed in compat builds.
  */
+// 兼容工具
 export const compatUtils = (
   __COMPAT__ ? _compatUtils : null
 ) as typeof _compatUtils

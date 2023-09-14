@@ -6,19 +6,21 @@ import {
   TestComment
 } from './nodeOps'
 import { isOn } from '@vue/shared'
-
+// 序列化
 export function serialize(
   node: TestNode,
   indent: number = 0,
   depth: number = 0
 ): string {
   if (node.type === TestNodeTypes.ELEMENT) {
+    // 序列化元素
     return serializeElement(node, indent, depth)
   } else {
+    // 序列化文本
     return serializeText(node, indent, depth)
   }
 }
-
+// 序列化内容
 export function serializeInner(
   node: TestElement,
   indent: number = 0,
@@ -31,7 +33,7 @@ export function serializeInner(
         newLine
     : ``
 }
-
+// 序列化元素
 function serializeElement(
   node: TestElement,
   indent: number,
@@ -55,7 +57,7 @@ function serializeElement(
     `${padding}</${node.tag}>`
   )
 }
-
+// 序列化文本
 function serializeText(
   node: TestText | TestComment,
   indent: number,

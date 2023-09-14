@@ -18,7 +18,7 @@ import { SchedulerJob } from './scheduler'
 import { queuePostRenderEffect } from './renderer'
 
 /**
- * Function for handling a template ref
+ * Function for handling a template ref 设置模版中的REF
  */
 export function setRef(
   rawRef: VNodeNormalizedRef,
@@ -27,8 +27,10 @@ export function setRef(
   vnode: VNode,
   isUnmount = false
 ) {
+  // 如果是数组 rawRef
   if (isArray(rawRef)) {
     rawRef.forEach((r, i) =>
+    // 设置REF递 归
       setRef(
         r,
         oldRawRef && (isArray(oldRawRef) ? oldRawRef[i] : oldRawRef),
@@ -39,7 +41,7 @@ export function setRef(
     )
     return
   }
-
+  // 如果是异步外层
   if (isAsyncWrapper(vnode) && !isUnmount) {
     // when mounting async components, nothing needs to be done,
     // because the template ref is forwarded to inner component
@@ -66,6 +68,7 @@ export function setRef(
 
   // dynamic ref changed. unset old ref
   if (oldRef != null && oldRef !== ref) {
+    // 如果中字符串旧REF
     if (isString(oldRef)) {
       refs[oldRef] = null
       if (hasOwn(setupState, oldRef)) {
@@ -75,13 +78,14 @@ export function setRef(
       oldRef.value = null
     }
   }
-
+  // 如果REF是函数
   if (isFunction(ref)) {
     callWithErrorHandling(ref, owner, ErrorCodes.FUNCTION_REF, [value, refs])
   } else {
     const _isString = isString(ref)
     const _isRef = isRef(ref)
     if (_isString || _isRef) {
+      // 做设置
       const doSet = () => {
         if (rawRef.f) {
           const existing = _isString
@@ -123,6 +127,7 @@ export function setRef(
         // null values means this is unmount and it should not overwrite another
         // ref with the same key
         ;(doSet as SchedulerJob).id = -1
+        // 发送doSet 队列
         queuePostRenderEffect(doSet, parentSuspense)
       } else {
         doSet()

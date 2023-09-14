@@ -21,11 +21,11 @@ type TraceEntry = {
 }
 
 type ComponentTraceStack = TraceEntry[]
-
+// 压入警告栈
 export function pushWarningContext(vnode: VNode) {
   stack.push(vnode)
 }
-
+// 弹出警告栈
 export function popWarningContext() {
   stack.pop()
 }
@@ -35,13 +35,16 @@ export function warn(msg: string, ...args: any[]) {
 
   // avoid props formatting or warn handler tracking deps that might be mutated
   // during patch, leading to infinite recursion.
+  // 暂停任务
   pauseTracking()
 
   const instance = stack.length ? stack[stack.length - 1].component : null
   const appWarnHandler = instance && instance.appContext.config.warnHandler
+  // 获取组件跟踪 
   const trace = getComponentTrace()
 
   if (appWarnHandler) {
+    // 执行错误手动
     callWithErrorHandling(
       appWarnHandler,
       instance,
@@ -69,10 +72,10 @@ export function warn(msg: string, ...args: any[]) {
     }
     console.warn(...warnArgs)
   }
-
+  // 重置任务
   resetTracking()
 }
-
+// 获取组件跟踪
 export function getComponentTrace(): ComponentTraceStack {
   let currentVNode: VNode | null = stack[stack.length - 1]
   if (!currentVNode) {
@@ -103,6 +106,7 @@ export function getComponentTrace(): ComponentTraceStack {
 }
 
 /* istanbul ignore next */
+// 格式跟踪 
 function formatTrace(trace: ComponentTraceStack): any[] {
   const logs: any[] = []
   trace.forEach((entry, i) => {
@@ -110,7 +114,7 @@ function formatTrace(trace: ComponentTraceStack): any[] {
   })
   return logs
 }
-
+// 格式跟踪入口
 function formatTraceEntry({ vnode, recurseCount }: TraceEntry): any[] {
   const postfix =
     recurseCount > 0 ? `... (${recurseCount} recursive calls)` : ``
@@ -127,6 +131,7 @@ function formatTraceEntry({ vnode, recurseCount }: TraceEntry): any[] {
 }
 
 /* istanbul ignore next */
+// 格式化属性组
 function formatProps(props: Data): any[] {
   const res: any[] = []
   const keys = Object.keys(props)
@@ -142,6 +147,7 @@ function formatProps(props: Data): any[] {
 function formatProp(key: string, value: unknown): any[]
 function formatProp(key: string, value: unknown, raw: true): any
 /* istanbul ignore next */
+// 格式化属性
 function formatProp(key: string, value: unknown, raw?: boolean): any {
   if (isString(value)) {
     value = JSON.stringify(value)
@@ -166,6 +172,7 @@ function formatProp(key: string, value: unknown, raw?: boolean): any {
 /**
  * @internal
  */
+// 断言数字类型
 export function assertNumber(val: unknown, type: string) {
   if (!__DEV__) return
   if (val === undefined) {

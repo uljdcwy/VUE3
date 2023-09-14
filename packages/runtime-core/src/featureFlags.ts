@@ -7,6 +7,7 @@ import { getGlobalThis } from '@vue/shared'
  *
  * istanbul-ignore-next
  */
+// 初始化功能标志
 export function initFeatureFlags() {
   const needWarn = []
 

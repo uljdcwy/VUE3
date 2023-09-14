@@ -175,26 +175,36 @@ export function h<P>(
 ): VNode
 
 // Actual implementation
+// H 方法，
 export function h(type: any, propsOrChildren?: any, children?: any): VNode {
   const l = arguments.length
+  // 如果参数为两个
   if (l === 2) {
+    // 如果属性或子元素与不 数组
     if (isObject(propsOrChildren) && !isArray(propsOrChildren)) {
       // single vnode without props
+      // 如果是节点，
       if (isVNode(propsOrChildren)) {
+        // 返回创建的节点
         return createVNode(type, null, [propsOrChildren])
       }
       // props without children
+      // 返回创建的节点
       return createVNode(type, propsOrChildren)
     } else {
       // omit props
+      // 返回创建的节点
       return createVNode(type, null, propsOrChildren)
     }
   } else {
+    // 如果是三个参数
     if (l > 3) {
+      // 子元素指向
       children = Array.prototype.slice.call(arguments, 2)
     } else if (l === 3 && isVNode(children)) {
       children = [children]
     }
+    // 返回创建的节点
     return createVNode(type, propsOrChildren, children)
   }
 }

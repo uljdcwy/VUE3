@@ -157,7 +157,7 @@ const isStringifiableAttr = (name: string, ns: DOMNamespaces) => {
       : false) || dataAriaRE.test(name)
   )
 }
-
+// 替换提升
 const replaceHoist = (
   node: StringifiableNode,
   replacement: JSChildNode | null,
@@ -178,6 +178,7 @@ const isNonStringifiable = /*#__PURE__*/ makeMap(
  *   - nc is the number of nodes inside
  *   - ec is the number of element with bindings inside
  */
+// 分析节点
 function analyzeNode(node: StringifiableNode): [number, number] | false {
   if (node.type === NodeTypes.ELEMENT && isNonStringifiable(node.tag)) {
     return false
@@ -242,10 +243,10 @@ function analyzeNode(node: StringifiableNode): [number, number] | false {
     }
     return true
   }
-
+  // 返回递归内容
   return walk(node) ? [nc, ec] : false
 }
-
+// 字符串化节点
 function stringifyNode(
   node: string | TemplateChildNode,
   context: TransformContext

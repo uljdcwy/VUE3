@@ -1,6 +1,6 @@
 import { TestElement, logNodeOp, NodeOpTypes } from './nodeOps'
 import { isOn } from '@vue/shared'
-
+// 更新属性
 export function patchProp(
   el: TestElement,
   key: string,

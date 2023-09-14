@@ -16,22 +16,25 @@ import {
 } from '@vue/shared'
 
 type AssignerFn = (value: any) => void
-
+// 获取model 的类型
 const getModelAssigner = (vnode: VNode): AssignerFn => {
   const fn =
     vnode.props!['onUpdate:modelValue'] ||
     (__COMPAT__ && vnode.props!['onModelCompat:input'])
+    // 如果是数组，调用数组 
   return isArray(fn) ? value => invokeArrayFns(fn, value) : fn
 }
-
+// 合成开始时
 function onCompositionStart(e: Event) {
   ;(e.target as any).composing = true
 }
 
+// 合成结束时
 function onCompositionEnd(e: Event) {
   const target = e.target as any
   if (target.composing) {
     target.composing = false
+    // 更新事件
     target.dispatchEvent(new Event('input'))
   }
 }
@@ -39,31 +42,37 @@ function onCompositionEnd(e: Event) {
 type ModelDirective<T> = ObjectDirective<T & { _assign: AssignerFn }>
 
 // We are exporting the v-model runtime directly as vnode hooks so that it can
-// be tree-shaken in case v-model is never used.
+// be tree-shaken in case v-model is never used. 绑定的节点文本
 export const vModelText: ModelDirective<
   HTMLInputElement | HTMLTextAreaElement
 > = {
+  // 创建
   created(el, { modifiers: { lazy, trim, number } }, vnode) {
     el._assign = getModelAssigner(vnode)
     const castToNumber =
       number || (vnode.props && vnode.props.type === 'number')
+      // 添加监听改变与INPUT
     addEventListener(el, lazy ? 'change' : 'input', e => {
       if ((e.target as any).composing) return
       let domValue: string | number = el.value
       if (trim) {
+        // 获取DOM值
         domValue = domValue.trim()
       }
       if (castToNumber) {
+        // 转换DOM值到数字
         domValue = looseToNumber(domValue)
       }
       el._assign(domValue)
     })
     if (trim) {
+      // 如果空格为真监听改变事件
       addEventListener(el, 'change', () => {
         el.value = el.value.trim()
       })
     }
     if (!lazy) {
+      // 监听事件
       addEventListener(el, 'compositionstart', onCompositionStart)
       addEventListener(el, 'compositionend', onCompositionEnd)
       // Safari < 10.2 & UIWebView doesn't fire compositionend when
@@ -73,14 +82,16 @@ export const vModelText: ModelDirective<
       addEventListener(el, 'change', onCompositionEnd)
     }
   },
-  // set value on mounted so it's after min/max for type="range"
+  // set value on mounted so it's after min/max for type="range" 挂载时
   mounted(el, { value }) {
     el.value = value == null ? '' : value
   },
+  // 更新前
   beforeUpdate(el, { value, modifiers: { lazy, trim, number } }, vnode) {
     el._assign = getModelAssigner(vnode)
     // avoid clearing unresolved text. #2302
     if ((el as any).composing) return
+    // 如果是池围属性
     if (document.activeElement === el && el.type !== 'range') {
       if (lazy) {
         return
@@ -97,18 +108,23 @@ export const vModelText: ModelDirective<
     }
     const newValue = value == null ? '' : value
     if (el.value !== newValue) {
+      // 更新元素的值
       el.value = newValue
     }
   }
 }
-
+// 绑定checkbox
 export const vModelCheckbox: ModelDirective<HTMLInputElement> = {
-  // #4096 array checkboxes need to be deep traversed
+  // #4096 array checkboxes need to be deep traversed 深度设置为真
   deep: true,
+  //创建
   created(el, _, vnode) {
     el._assign = getModelAssigner(vnode)
+    // 监听改变
     addEventListener(el, 'change', () => {
+      // 获取绑定的值
       const modelValue = (el as any)._modelValue
+      // 获取元素值
       const elementValue = getValue(el)
       const checked = el.checked
       const assign = el._assign
@@ -136,13 +152,15 @@ export const vModelCheckbox: ModelDirective<HTMLInputElement> = {
     })
   },
   // set initial checked on mount to wait for true-value/false-value
+  // 挂载时执行的方法
   mounted: setChecked,
+  // 更新前执行的方法
   beforeUpdate(el, binding, vnode) {
     el._assign = getModelAssigner(vnode)
     setChecked(el, binding, vnode)
   }
 }
-
+// 设置值
 function setChecked(
   el: HTMLInputElement,
   { value, oldValue }: DirectiveBinding,
@@ -159,15 +177,18 @@ function setChecked(
     el.checked = looseEqual(value, getCheckboxValue(el, true))
   }
 }
-
+// 绑定radio
 export const vModelRadio: ModelDirective<HTMLInputElement> = {
+  // 创建方法
   created(el, { value }, vnode) {
     el.checked = looseEqual(value, vnode.props!.value)
     el._assign = getModelAssigner(vnode)
+    // 监听改变
     addEventListener(el, 'change', () => {
       el._assign(getValue(el))
     })
   },
+  // 更新前执行
   beforeUpdate(el, { value, oldValue }, vnode) {
     el._assign = getModelAssigner(vnode)
     if (value !== oldValue) {
@@ -175,10 +196,11 @@ export const vModelRadio: ModelDirective<HTMLInputElement> = {
     }
   }
 }
-
+// 绑定 select 
 export const vModelSelect: ModelDirective<HTMLSelectElement> = {
   // <select multiple> value need to be deep traversed
   deep: true,
+  // 创建时
   created(el, { value, modifiers: { number } }, vnode) {
     const isSetModel = isSet(value)
     addEventListener(el, 'change', () => {
@@ -198,18 +220,20 @@ export const vModelSelect: ModelDirective<HTMLSelectElement> = {
     el._assign = getModelAssigner(vnode)
   },
   // set value in mounted & updated because <select> relies on its children
-  // <option>s.
+  // <option>s. 挂载时
   mounted(el, { value }) {
     setSelected(el, value)
   },
+  // 更新前
   beforeUpdate(el, _binding, vnode) {
     el._assign = getModelAssigner(vnode)
   },
+  // 更新时
   updated(el, { value }) {
     setSelected(el, value)
   }
 }
-
+// 设置选择值
 function setSelected(el: HTMLSelectElement, value: any) {
   const isMultiple = el.multiple
   if (isMultiple && !isArray(value) && !isSet(value)) {
@@ -241,12 +265,12 @@ function setSelected(el: HTMLSelectElement, value: any) {
   }
 }
 
-// retrieve raw value set via :value bindings
+// retrieve raw value set via :value bindings 获取值
 function getValue(el: HTMLOptionElement | HTMLInputElement) {
   return '_value' in el ? (el as any)._value : el.value
 }
 
-// retrieve raw value for true-value and false-value set via :true-value or :false-value bindings
+// retrieve raw value for true-value and false-value set via :true-value or :false-value bindings 获取checkbox的值
 function getCheckboxValue(
   el: HTMLInputElement & { _trueValue?: any; _falseValue?: any },
   checked: boolean
@@ -254,24 +278,28 @@ function getCheckboxValue(
   const key = checked ? '_trueValue' : '_falseValue'
   return key in el ? el[key] : checked
 }
-
+// 绑定动态时
 export const vModelDynamic: ObjectDirective<
   HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
 > = {
+  // 创建
   created(el, binding, vnode) {
     callModelHook(el, binding, vnode, null, 'created')
   },
+  // 挂载
   mounted(el, binding, vnode) {
     callModelHook(el, binding, vnode, null, 'mounted')
   },
+  // 更新前
   beforeUpdate(el, binding, vnode, prevVNode) {
     callModelHook(el, binding, vnode, prevVNode, 'beforeUpdate')
   },
+  // 更新
   updated(el, binding, vnode, prevVNode) {
     callModelHook(el, binding, vnode, prevVNode, 'updated')
   }
 }
-
+// 移除动态绑定
 function resolveDynamicModel(tagName: string, type: string | undefined) {
   switch (tagName) {
     case 'SELECT':
@@ -289,7 +317,7 @@ function resolveDynamicModel(tagName: string, type: string | undefined) {
       }
   }
 }
-
+// 执行绑定勾子
 function callModelHook(
   el: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
   binding: DirectiveBinding,
@@ -297,25 +325,28 @@ function callModelHook(
   prevVNode: VNode | null,
   hook: keyof ObjectDirective
 ) {
+  // 解析动态绑定
   const modelToUse = resolveDynamicModel(
     el.tagName,
     vnode.props && vnode.props.type
   )
   const fn = modelToUse[hook] as DirectiveHook
+  // 如果函数为真执行
   fn && fn(el, binding, vnode, prevVNode)
 }
 
 // SSR vnode transforms, only used when user includes client-oriented render
-// function in SSR
+// function in SSR 初始化绑定的循环SSR
 export function initVModelForSSR() {
+  // 获取绑定文本SSR属笥
   vModelText.getSSRProps = ({ value }) => ({ value })
-
+  // 获取radio的SSR属性
   vModelRadio.getSSRProps = ({ value }, vnode) => {
     if (vnode.props && looseEqual(vnode.props.value, value)) {
       return { checked: true }
     }
   }
-
+  // 获取checkbox的SSR属性
   vModelCheckbox.getSSRProps = ({ value }, vnode) => {
     if (isArray(value)) {
       if (vnode.props && looseIndexOf(value, vnode.props.value) > -1) {
@@ -329,7 +360,7 @@ export function initVModelForSSR() {
       return { checked: true }
     }
   }
-
+  // 获取动态的SSR属性
   vModelDynamic.getSSRProps = (binding, vnode) => {
     if (typeof vnode.type !== 'string') {
       return

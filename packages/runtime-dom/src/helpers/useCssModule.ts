@@ -1,6 +1,6 @@
 import { warn, getCurrentInstance } from '@vue/runtime-core'
 import { EMPTY_OBJ } from '@vue/shared'
-
+// 使用css module
 export function useCssModule(name = '$style'): Record<string, string> {
   /* istanbul ignore else */
   if (!__GLOBAL__) {

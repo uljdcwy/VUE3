@@ -5,20 +5,27 @@ interface VShowElement extends HTMLElement {
   _vod: string
 }
 
+// show指令
 export const vShow: ObjectDirective<VShowElement> = {
+  // 指令挂载之前
   beforeMount(el, { value }, { transition }) {
     el._vod = el.style.display === 'none' ? '' : el.style.display
     if (transition && value) {
+      // 过渡进行之前
       transition.beforeEnter(el)
     } else {
+      // 设置显示
       setDisplay(el, value)
     }
   },
+  // 持载执行
   mounted(el, { value }, { transition }) {
     if (transition && value) {
+      // 过渡进入
       transition.enter(el)
     }
   },
+  // 更新
   updated(el, { value, oldValue }, { transition }) {
     if (!value === !oldValue) return
     if (transition) {
@@ -35,6 +42,7 @@ export const vShow: ObjectDirective<VShowElement> = {
       setDisplay(el, value)
     }
   },
+  // 卸载之前
   beforeUnmount(el, { value }) {
     setDisplay(el, value)
   }
@@ -46,6 +54,7 @@ function setDisplay(el: VShowElement, value: unknown): void {
 
 // SSR vnode transforms, only used when user includes client-oriented render
 // function in SSR
+// 初始化ssr
 export function initVShowForSSR() {
   vShow.getSSRProps = ({ value }) => {
     if (!value) {

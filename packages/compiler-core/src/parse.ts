@@ -148,7 +148,7 @@ function parseChildren(
   const parent = last(ancestors)
   const ns = parent ? parent.ns : Namespaces.HTML
   const nodes: TemplateChildNode[] = []
-
+  // 是结束标签
   while (!isEnd(context, mode, ancestors)) {
     __TEST__ && assert(context.source.length > 0)
     const s = context.source

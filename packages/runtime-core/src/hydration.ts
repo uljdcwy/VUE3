@@ -37,10 +37,10 @@ const enum DOMNodeTypes {
 }
 
 let hasMismatch = false
-
+// 判断是SVG内容
 const isSVGContainer = (container: Element) =>
   /svg/.test(container.namespaceURI!) && container.tagName !== 'foreignObject'
-
+// 判断是注释节点
 const isComment = (node: Node): node is Comment =>
   node.nodeType === DOMNodeTypes.COMMENT
 
@@ -49,6 +49,7 @@ const isComment = (node: Node): node is Comment =>
 // it out creates a ton of unnecessary complexity.
 // Hydration also depends on some renderer internal logic which needs to be
 // passed in via arguments.
+// 创建激活方法
 export function createHydrationFunctions(
   rendererInternals: RendererInternals<Node, Element>
 ) {
@@ -65,21 +66,26 @@ export function createHydrationFunctions(
       createComment
     }
   } = rendererInternals
-
+  // 激活方法定义
   const hydrate: RootHydrateFunction = (vnode, container) => {
+    // 如果没有子节点
     if (!container.hasChildNodes()) {
       __DEV__ &&
         warn(
           `Attempting to hydrate existing markup but container is empty. ` +
             `Performing full mount instead.`
         )
+        // 更新
       patch(null, vnode, container)
+      // 执行调度器
       flushPostFlushCbs()
       container._vnode = vnode
       return
     }
     hasMismatch = false
+    // 激活节点
     hydrateNode(container.firstChild!, vnode, null, null, null)
+    // 执行调度器
     flushPostFlushCbs()
     container._vnode = vnode
     if (hasMismatch && !__TEST__) {
@@ -87,7 +93,7 @@ export function createHydrationFunctions(
       console.error(`Hydration completed but contains mismatches.`)
     }
   }
-
+  // 激活节点方法
   const hydrateNode = (
     node: Node,
     vnode: VNode,
@@ -96,7 +102,9 @@ export function createHydrationFunctions(
     slotScopeIds: string[] | null,
     optimized = false
   ): Node | null => {
+    // 判断是评论
     const isFragmentStart = isComment(node) && node.data === '['
+    // 不匹配时
     const onMismatch = () =>
       handleMismatch(
         node,
@@ -106,22 +114,27 @@ export function createHydrationFunctions(
         slotScopeIds,
         isFragmentStart
       )
-
+        // 解构节点类型ref更新标志
     const { type, ref, shapeFlag, patchFlag } = vnode
+    // 获取节点类型
     let domType = node.nodeType
+    // 节点元素指向
     vnode.el = node
-
+        // 
     if (patchFlag === PatchFlags.BAIL) {
       optimized = false
       vnode.dynamicChildren = null
     }
-
+    // 下一个节点指向空
     let nextNode: Node | null = null
+    // 开关
     switch (type) {
+      // 如果类型是文本
       case Text:
         if (domType !== DOMNodeTypes.TEXT) {
           // #5728 empty text node inside a slot can cause hydration failure
           // because the server rendered HTML won't contain a text node
+          // 节点子元素是空时
           if (vnode.children === '') {
             insert((vnode.el = createText('')), parentNode(node)!, node)
             nextNode = node
@@ -131,6 +144,7 @@ export function createHydrationFunctions(
         } else {
           if ((node as Text).data !== vnode.children) {
             hasMismatch = true
+            // 是开发环境抛出警告
             __DEV__ &&
               warn(
                 `Hydration text mismatch:` +
@@ -142,19 +156,24 @@ export function createHydrationFunctions(
           nextNode = nextSibling(node)
         }
         break
+        // 注释
       case Comment:
+        // 如果节点类型不是注释或者是片段开始
         if (domType !== DOMNodeTypes.COMMENT || isFragmentStart) {
           nextNode = onMismatch()
         } else {
           nextNode = nextSibling(node)
         }
         break
+        // 静态
       case Static:
+        // 如果是片段开始
         if (isFragmentStart) {
           // entire template is static but SSRed as a fragment
           node = nextSibling(node)!
           domType = node.nodeType
         }
+        // 如果节点类型是元素或者节点类型为文本
         if (domType === DOMNodeTypes.ELEMENT || domType === DOMNodeTypes.TEXT) {
           // determine anchor, adopt content
           nextNode = node
@@ -170,17 +189,23 @@ export function createHydrationFunctions(
             if (i === vnode.staticCount! - 1) {
               vnode.anchor = nextNode
             }
+            // 指向下一个同级节点
             nextNode = nextSibling(nextNode)!
           }
+          // 返回
           return isFragmentStart ? nextSibling(nextNode) : nextNode
         } else {
+          // 执行搜索
           onMismatch()
         }
         break
+        // 代码片段 
       case Fragment:
+        // 如果不是代码片段
         if (!isFragmentStart) {
           nextNode = onMismatch()
         } else {
+          // 激活代码片段
           nextNode = hydrateFragment(
             node as Comment,
             vnode,
@@ -191,6 +216,7 @@ export function createHydrationFunctions(
           )
         }
         break
+        // 默认
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {
           if (
@@ -198,8 +224,10 @@ export function createHydrationFunctions(
             (vnode.type as string).toLowerCase() !==
               (node as Element).tagName.toLowerCase()
           ) {
+            // 指向搜索返回值
             nextNode = onMismatch()
           } else {
+            // 激活元素
             nextNode = hydrateElement(
               node as Element,
               vnode,
@@ -214,7 +242,9 @@ export function createHydrationFunctions(
           // has .el set, the component will perform hydration instead of mount
           // on its sub-tree.
           vnode.slotScopeIds = slotScopeIds
+          // 指向上级节点
           const container = parentNode(node)!
+          // 挂载组件
           mountComponent(
             vnode,
             container,
@@ -228,6 +258,7 @@ export function createHydrationFunctions(
           // component may be async, so in the case of fragments we cannot rely
           // on component's rendered output to determine the end of the fragment
           // instead, we do a lookahead to find the end anchor node.
+          // 指向下一个节点
           nextNode = isFragmentStart
             ? locateClosingAsyncAnchor(node)
             : nextSibling(node)
@@ -245,9 +276,11 @@ export function createHydrationFunctions(
           // if component is async, it may get moved / unmounted before its
           // inner component is loaded, so we need to give it a placeholder
           // vnode that matches its adopted DOM.
+          // 如果节点是异步的外包装
           if (isAsyncWrapper(vnode)) {
             let subTree
             if (isFragmentStart) {
+              // 子树指向创建的节点
               subTree = createVNode(Fragment)
               subTree.anchor = nextNode
                 ? nextNode.previousSibling
@@ -292,12 +325,13 @@ export function createHydrationFunctions(
     }
 
     if (ref != null) {
+      // 设置REF
       setRef(ref, null, parentSuspense, vnode)
     }
 
     return nextNode
   }
-
+  // 激活元素方法
   const hydrateElement = (
     el: Element,
     vnode: VNode,
@@ -315,6 +349,7 @@ export function createHydrationFunctions(
     // #5405 in dev, always hydrate children for HMR
     if (__DEV__ || forcePatchValue || patchFlag !== PatchFlags.HOISTED) {
       if (dirs) {
+        // 如果指令为真调用指令勾子
         invokeDirectiveHook(vnode, null, parentComponent, 'created')
       }
       // props
@@ -329,6 +364,7 @@ export function createHydrationFunctions(
               (forcePatchValue && key.endsWith('value')) ||
               (isOn(key) && !isReservedProp(key))
             ) {
+              // 更新属性
               patchProp(
                 el,
                 key,
@@ -343,6 +379,7 @@ export function createHydrationFunctions(
         } else if (props.onClick) {
           // Fast path for click listeners (which is most often) to avoid
           // iterating through props.
+          // 更新属性
           patchProp(
             el,
             'onClick',
@@ -357,12 +394,14 @@ export function createHydrationFunctions(
       // vnode / directive hooks
       let vnodeHooks: VNodeHook | null | undefined
       if ((vnodeHooks = props && props.onVnodeBeforeMount)) {
+        // 调用节点勾子
         invokeVNodeHook(vnodeHooks, parentComponent, vnode)
       }
       if (dirs) {
         invokeDirectiveHook(vnode, null, parentComponent, 'beforeMount')
       }
       if ((vnodeHooks = props && props.onVnodeMounted) || dirs) {
+        // 队列副作用悬挂
         queueEffectWithSuspense(() => {
           vnodeHooks && invokeVNodeHook(vnodeHooks, parentComponent, vnode)
           dirs && invokeDirectiveHook(vnode, null, parentComponent, 'mounted')
@@ -374,6 +413,7 @@ export function createHydrationFunctions(
         // skip if element has innerHTML / textContent
         !(props && (props.innerHTML || props.textContent))
       ) {
+        // 激活子节点
         let next = hydrateChildren(
           el.firstChild,
           vnode,
@@ -396,6 +436,7 @@ export function createHydrationFunctions(
           // The SSRed DOM contains more nodes than it should. Remove them.
           const cur = next
           next = next.nextSibling
+          // 移除
           remove(cur)
         }
       } else if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
@@ -415,7 +456,7 @@ export function createHydrationFunctions(
     }
     return el.nextSibling
   }
-
+  // 激活子节点
   const hydrateChildren = (
     node: Node | null,
     parentVNode: VNode,
@@ -430,10 +471,12 @@ export function createHydrationFunctions(
     const l = children.length
     let hasWarned = false
     for (let i = 0; i < l; i++) {
+      // 规范化节点
       const vnode = optimized
         ? children[i]
         : (children[i] = normalizeVNode(children[i]))
       if (node) {
+        // 激活节点
         node = hydrateNode(
           node,
           vnode,
@@ -454,6 +497,7 @@ export function createHydrationFunctions(
           hasWarned = true
         }
         // the SSRed DOM didn't contain enough nodes. Mount the missing ones.
+        // 更新
         patch(
           null,
           vnode,
@@ -468,7 +512,7 @@ export function createHydrationFunctions(
     }
     return node
   }
-
+  // 激活片段
   const hydrateFragment = (
     node: Comment,
     vnode: VNode,
@@ -483,8 +527,9 @@ export function createHydrationFunctions(
         ? slotScopeIds.concat(fragmentSlotScopeIds)
         : fragmentSlotScopeIds
     }
-
+    // 上级节点获取
     const container = parentNode(node)!
+    // 激活子节点
     const next = hydrateChildren(
       nextSibling(node)!,
       vnode,
@@ -495,17 +540,19 @@ export function createHydrationFunctions(
       optimized
     )
     if (next && isComment(next) && next.data === ']') {
+      // 返回下一个同级节点
       return nextSibling((vnode.anchor = next))
     } else {
       // fragment didn't hydrate successfully, since we didn't get a end anchor
       // back. This should have led to node/children mismatch warnings.
       hasMismatch = true
       // since the anchor is missing, we need to create one and insert it
+      // 插入内容
       insert((vnode.anchor = createComment(`]`)), container, next)
       return next
     }
   }
-
+  // 处理不匹配
   const handleMismatch = (
     node: Node,
     vnode: VNode,
@@ -531,6 +578,7 @@ export function createHydrationFunctions(
 
     if (isFragment) {
       // remove excessive fragment nodes
+      // 定位关闭异步锚
       const end = locateClosingAsyncAnchor(node)
       while (true) {
         const next = nextSibling(node)
@@ -576,6 +624,6 @@ export function createHydrationFunctions(
     }
     return node
   }
-
+  // 返回激活与激活节点
   return [hydrate, hydrateNode] as const
 }
