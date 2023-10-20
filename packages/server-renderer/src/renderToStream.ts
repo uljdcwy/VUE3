@@ -17,7 +17,7 @@ export interface SimpleReadable {
   push(chunk: string | null): void
   destroy(err: any): void
 }
-
+// 展示缓冲区
 async function unrollBuffer(
   buffer: SSRBuffer,
   stream: SimpleReadable

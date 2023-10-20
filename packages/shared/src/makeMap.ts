@@ -3,7 +3,7 @@
  * is in that map.
  * IMPORTANT: all calls of this function must be prefixed with
  * \/\*#\_\_PURE\_\_\*\/
- * So that rollup can tree-shake them if necessary.
+ * So that rollup can tree-shake them if necessary.  建立字符串图
  */
 export function makeMap(
   str: string,

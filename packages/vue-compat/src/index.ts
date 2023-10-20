@@ -12,27 +12,33 @@ import {
 } from '../../runtime-core/src/compat/compatConfig'
 
 const compileCache: Record<string, RenderFunction> = Object.create(null)
-
+// 勾子到函数
 function compileToFunction(
   template: string | HTMLElement,
   options?: CompilerOptions
 ): RenderFunction {
+  // 如果模版不是字符串
   if (!isString(template)) {
+    // 如果模版节点类型为真时
     if (template.nodeType) {
+      // 模版指向模版内容HTML
       template = template.innerHTML
     } else {
       __DEV__ && warn(`invalid template option: `, template)
       return NOOP
     }
   }
-
+  // key指向模版
   const key = template
+  // 缓存指向勾子缓存
   const cached = compileCache[key]
+  // 如果缓存为真返回缓存
   if (cached) {
     return cached
   }
-
+  // 模版指零个是#号时
   if (template[0] === '#') {
+    // el指向查找到的模版
     const el = document.querySelector(template)
     if (__DEV__ && !el) {
       warn(`Template element not found or is empty: ${template}`)
@@ -41,13 +47,14 @@ function compileToFunction(
     // Reason: potential execution of JS expressions in in-DOM template.
     // The user must make sure the in-DOM template is trusted. If it's rendered
     // by the server, the template should not contain any user data.
+    /**@type {HTMLElement|string} 模版指向元素字符 */
     template = el ? el.innerHTML : ``
   }
 
   if (__DEV__ && !__TEST__ && (!options || !options.whitespace)) {
     warnDeprecation(DeprecationTypes.CONFIG_WHITESPACE, null)
   }
-
+  // 勾子方法获取code
   const { code } = compile(
     template,
     extend(
@@ -60,7 +67,7 @@ function compileToFunction(
       options
     )
   )
-
+      // 错误方法
   function onError(err: CompilerError, asWarning = false) {
     const message = asWarning
       ? err.message
@@ -85,10 +92,10 @@ function compileToFunction(
 
   // mark the function as runtime compiled
   ;(render as InternalRenderFunction)._rc = true
-
+  // 返回缓存的勾子
   return (compileCache[key] = render)
 }
-
+// 注册运行时的勾子
 registerRuntimeCompiler(compileToFunction)
 
 const Vue = createCompatVue()

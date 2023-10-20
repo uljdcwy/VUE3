@@ -32,16 +32,16 @@ const VOID_TAGS =
 
 /**
  * Compiler only.
- * Do NOT use in runtime code paths unless behind `__DEV__` flag.
+ * Do NOT use in runtime code paths unless behind `__DEV__` flag. 判断是HTML标签
  */
 export const isHTMLTag = /*#__PURE__*/ makeMap(HTML_TAGS)
 /**
  * Compiler only.
- * Do NOT use in runtime code paths unless behind `__DEV__` flag.
+ * Do NOT use in runtime code paths unless behind `__DEV__` flag. 判断是SVG标签
  */
 export const isSVGTag = /*#__PURE__*/ makeMap(SVG_TAGS)
 /**
  * Compiler only.
- * Do NOT use in runtime code paths unless behind `__DEV__` flag.
+ * Do NOT use in runtime code paths unless behind `__DEV__` flag. 判断是空标签
  */
 export const isVoidTag = /*#__PURE__*/ makeMap(VOID_TAGS)

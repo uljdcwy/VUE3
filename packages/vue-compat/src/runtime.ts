@@ -4,7 +4,7 @@ import { createCompatVue } from './createCompatVue'
 import { warn } from '@vue/runtime-core'
 
 const Vue = createCompatVue()
-
+// VUE勾子手续费向方法
 Vue.compile = (() => {
   if (__DEV__) {
     warn(

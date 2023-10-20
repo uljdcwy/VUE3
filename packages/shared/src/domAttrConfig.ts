@@ -11,12 +11,15 @@ import { makeMap } from './makeMap'
  * - novalidate -> noValidate
  * - readonly -> readOnly
  */
+// 特殊的布尔属性
 const specialBooleanAttrs = `itemscope,allowfullscreen,formnovalidate,ismap,nomodule,novalidate,readonly`
+// 抛出特殊的布尔属笥
 export const isSpecialBooleanAttr = /*#__PURE__*/ makeMap(specialBooleanAttrs)
 
 /**
  * The full list is needed during SSR to produce the correct initial markup.
  */
+// 判断是布尔属性
 export const isBooleanAttr = /*#__PURE__*/ makeMap(
   specialBooleanAttrs +
     `,async,autofocus,autoplay,controls,default,defer,disabled,hidden,` +
@@ -28,21 +31,25 @@ export const isBooleanAttr = /*#__PURE__*/ makeMap(
  * Boolean attributes should be included if the value is truthy or ''.
  * e.g. `<select multiple>` compiles to `{ multiple: '' }`
  */
+// 导入布尔属性
 export function includeBooleanAttr(value: unknown): boolean {
   return !!value || value === ''
 }
 
 const unsafeAttrCharRE = /[>/="'\u0009\u000a\u000c\u0020]/
 const attrValidationCache: Record<string, boolean> = {}
-
+// 判断是SSR软属性名称
 export function isSSRSafeAttrName(name: string): boolean {
+  // 属性验证缓存有私有属性
   if (attrValidationCache.hasOwnProperty(name)) {
     return attrValidationCache[name]
   }
+  // 判怕是否是软属性字符
   const isUnsafe = unsafeAttrCharRE.test(name)
   if (isUnsafe) {
     console.error(`unsafe attribute name: ${name}`)
   }
+  // 返回属性缓存的判断
   return (attrValidationCache[name] = !isUnsafe)
 }
 

@@ -34,6 +34,10 @@ function evaluate(exp) {
 
 // this is called in the build script entry once
 // so the data can be shared across concurrent Rollup processes
+/**
+ * @type 扫描枚举
+ * @returns 
+ */
 export function scanEnums() {
   /**
    * @type {{ ranges: Record<string, [number, number][]>, defines: Record<string, string>, ids: string[] }}
@@ -50,8 +54,11 @@ export function scanEnums() {
 
   // 2. parse matched files to collect enum info
   for (const relativeFile of files) {
+    // 获取文件目录
     const file = path.resolve(process.cwd(), relativeFile)
+    // 读取目录，获取内容
     const content = readFileSync(file, 'utf-8')
+    // 获取内容为ast
     const ast = parse(content, {
       plugins: ['typescript'],
       sourceType: 'module'

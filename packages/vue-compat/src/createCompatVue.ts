@@ -18,16 +18,20 @@ if (__DEV__) {
 }
 
 import * as runtimeDom from '@vue/runtime-dom'
-
+// 外层创建APP
 function wrappedCreateApp(...args: any[]) {
-  // @ts-ignore
+  // @ts-ignore 创建APP 
   const app = createApp(...args)
+  // 如果兼容工具是兼容启用
   if (compatUtils.isCompatEnabled(DeprecationTypes.RENDER_FUNCTION, null)) {
     // register built-in components so that they can be resolved via strings
     // in the legacy h() call. The __compat__ prefix is to ensure that v3 h()
     // doesn't get affected.
+    // 添加组件过渡
     app.component('__compat__transition', Transition)
+    // 添加组件过渡组
     app.component('__compat__transition-group', TransitionGroup)
+    // 添加组件缓存
     app.component('__compat__keep-alive', KeepAlive)
     // built-in directives. No need for prefix since there's no render fn API
     // for resolving directives via string in v3.
@@ -36,7 +40,7 @@ function wrappedCreateApp(...args: any[]) {
   }
   return app
 }
-
+//创建兼容VUE
 export function createCompatVue() {
   const Vue = compatUtils.createCompatVue(createApp, wrappedCreateApp)
   extend(Vue, runtimeDom)

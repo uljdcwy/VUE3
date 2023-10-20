@@ -41,7 +41,7 @@ const buildAllMatching = args.all || args.a
 const commit = execa.sync('git', ['rev-parse', 'HEAD']).stdout.slice(0, 7)
 
 run()
-
+// 运行
 async function run() {
   const removeCache = scanEnums()
   try {
@@ -69,11 +69,11 @@ async function run() {
     removeCache()
   }
 }
-
+// 构建所有
 async function buildAll(targets) {
   await runParallel(cpus().length, targets, build)
 }
-
+// 运行并行
 async function runParallel(maxConcurrency, source, iteratorFn) {
   const ret = []
   const executing = []
@@ -91,7 +91,7 @@ async function runParallel(maxConcurrency, source, iteratorFn) {
   }
   return Promise.all(ret)
 }
-
+// build 方法
 async function build(target) {
   const pkgDir = path.resolve(`packages/${target}`)
   const pkg = require(`${pkgDir}/package.json`)
@@ -128,7 +128,7 @@ async function build(target) {
     { stdio: 'inherit' }
   )
 }
-
+// 检查所有的大小
 function checkAllSizes(targets) {
   if (devOnly || (formats && !formats.includes('global'))) {
     return
@@ -140,6 +140,10 @@ function checkAllSizes(targets) {
   console.log()
 }
 
+/**
+ * @type 检验大小
+ * @param {*} target 止录 
+ */
 function checkSize(target) {
   const pkgDir = path.resolve(`packages/${target}`)
   checkFileSize(`${pkgDir}/dist/${target}.global.prod.js`)
@@ -147,7 +151,12 @@ function checkSize(target) {
     checkFileSize(`${pkgDir}/dist/${target}.runtime.global.prod.js`)
   }
 }
-
+// 检查文件大小
+/**
+ * 
+ * @param {string} filePath 文件路径 
+ * @returns 
+ */
 function checkFileSize(filePath) {
   if (!existsSync(filePath)) {
     return
